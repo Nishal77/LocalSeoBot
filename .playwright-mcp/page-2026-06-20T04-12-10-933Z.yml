@@ -1,0 +1,30 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]: LocalSEOBot
+      - heading "Start your free trial" [level=3] [ref=e7]
+      - paragraph [ref=e8]: 14 days free. No credit card required to start.
+    - generic [ref=e9]:
+      - button "Sign up with Google" [ref=e10] [cursor=pointer]:
+        - img [ref=e11]
+        - text: Sign up with Google
+      - generic [ref=e20]: Or with email
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - text: Full name
+          - textbox "Full name" [ref=e23]:
+            - /placeholder: Jane Smith
+        - generic [ref=e24]:
+          - text: Email
+          - textbox "Email" [ref=e25]:
+            - /placeholder: you@example.com
+        - generic [ref=e26]:
+          - text: Password
+          - textbox "Password" [ref=e27]:
+            - /placeholder: At least 8 characters
+        - button "Start free trial" [ref=e28] [cursor=pointer]
+    - paragraph [ref=e30]:
+      - text: Already have an account?
+      - link "Sign in" [ref=e31] [cursor=pointer]:
+        - /url: /login
+  - alert [ref=e32]

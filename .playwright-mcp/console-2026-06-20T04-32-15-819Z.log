@@ -1,0 +1,6 @@
+[     178ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/:0
+[     781ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/_next/static/chunks/fallback/pages/_error.js:0
+[     781ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/_next/static/chunks/fallback/pages/_app.js:0
+[     781ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/_next/static/chunks/fallback/react-refresh.js:0
+[     782ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/_next/static/chunks/fallback/main.js:0
+[     783ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/_next/static/chunks/fallback/webpack.js:0

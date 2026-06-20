@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String?  @map("password_hash") @db.VarChar(255)
+  googleId     String?  @map("google_id") @db.VarChar(255)
+  name         String?  @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  businesses Business[]
+  accounts   Account[]
+  sessions   Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id") @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id") @db.Uuid
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Business {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  name               String    @db.VarChar(255)
+  websiteUrl         String?   @map("website_url") @db.VarChar(500)
+  addressLine1       String?   @map("address_line1") @db.VarChar(255)
+  addressLine2       String?   @map("address_line2") @db.VarChar(255)
+  city               String?   @db.VarChar(100)
+  state              String?   @db.VarChar(50)
+  zip                String?   @db.VarChar(20)
+  country            String    @default("US") @db.VarChar(50)
+  phone              String?   @db.VarChar(30)
+  category           String?   @db.VarChar(100)
+  nicheTags          String[]  @map("niche_tags")
+  timezone           String?   @db.VarChar(50)
+  gbpLocationId      String?   @map("gbp_location_id") @db.VarChar(255)
+  gbpAccountId       String?   @map("gbp_account_id") @db.VarChar(255)
+  status             String    @default("active") @db.VarChar(50)
+  plan               String    @default("starter") @db.VarChar(50)
+  trialEndsAt        DateTime? @map("trial_ends_at") @db.Timestamptz()
+  onboardingComplete Boolean   @default(false) @map("onboarding_complete")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  googleConnection GoogleConnection?
+  botSettings      BotSettings?
+  gbpPosts         GbpPost[]
+  citations        Citation[]
+  reviews          Review[]
+  keywords         Keyword[]
+  competitors      Competitor[]
+  weeklyReports    WeeklyReport[]
+  subscriptions    Subscription[]
+  auditLogs        AuditLog[]
+
+  @@map("businesses")
+}
+
+model GoogleConnection {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId      String   @unique @map("business_id") @db.Uuid
+  accessTokenEnc  String   @map("access_token_enc") @db.Text
+  refreshTokenEnc String   @map("refresh_token_enc") @db.Text
+  tokenExpiresAt  DateTime @map("token_expires_at") @db.Timestamptz()
+  scope           String?  @db.Text
+  connectedAt     DateTime @default(now()) @map("connected_at") @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("google_connections")
+}
+
+model BotSettings {
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId               String   @unique @map("business_id") @db.Uuid
+  postTone                 String   @default("professional") @map("post_tone") @db.VarChar(50)
+  postFrequency            String   @default("weekly") @map("post_frequency") @db.VarChar(50)
+  postApprovalRequired     Boolean  @default(false) @map("post_approval_required")
+  reviewApprovalRequired   Boolean  @default(false) @map("review_approval_required")
+  reviewAutoPostAfterHours Int      @default(4) @map("review_auto_post_after_hours")
+  reportDay                String   @default("monday") @map("report_day") @db.VarChar(20)
+  reportTime               String   @default("08:00") @map("report_time") @db.VarChar(10)
+  avoidTopics              String[] @map("avoid_topics")
+  customInstructions       String?  @map("custom_instructions") @db.Text
+  reviewRequestEnabled     Boolean  @default(false) @map("review_request_enabled")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("bot_settings")
+}
+
+model GbpPost {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId     String    @map("business_id") @db.Uuid
+  postType       String?   @map("post_type") @db.VarChar(50)
+  content        String    @db.Text
+  imageUrl       String?   @map("image_url") @db.VarChar(500)
+  ctaType        String?   @map("cta_type") @db.VarChar(50)
+  ctaUrl         String?   @map("cta_url") @db.VarChar(500)
+  status         String    @default("draft") @db.VarChar(50)
+  gbpPostId      String?   @map("gbp_post_id") @db.VarChar(255)
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz()
+  scheduledFor   DateTime? @map("scheduled_for") @db.Timestamptz()
+  approvalSentAt DateTime? @map("approval_sent_at") @db.Timestamptz()
+  approvedAt     DateTime? @map("approved_at") @db.Timestamptz()
+  approvedBy     String?   @map("approved_by") @db.VarChar(50)
+  weekOf         DateTime? @map("week_of") @db.Date
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("gbp_posts")
+}
+
+model CitationDirectory {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String  @db.VarChar(255)
+  url             String? @db.VarChar(500)
+  submissionType  String? @map("submission_type") @db.VarChar(50)
+  category        String? @db.VarChar(100)
+  priority        Int     @default(2)
+  domainAuthority Int?    @map("domain_authority")
+  isActive        Boolean @default(true) @map("is_active")
+  apiEndpoint     String? @map("api_endpoint") @db.VarChar(500)
+  formUrl         String? @map("form_url") @db.VarChar(500)
+
+  citations Citation[]
+
+  @@map("citation_directories")
+}
+
+model Citation {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId       String    @map("business_id") @db.Uuid
+  directoryId      String    @map("directory_id") @db.Uuid
+  status           String    @default("pending") @db.VarChar(50)
+  listingUrl       String?   @map("listing_url") @db.VarChar(500)
+  submittedAt      DateTime? @map("submitted_at") @db.Timestamptz()
+  wentLiveAt       DateTime? @map("went_live_at") @db.Timestamptz()
+  lastVerifiedAt   DateTime? @map("last_verified_at") @db.Timestamptz()
+  napMatch         Boolean?  @map("nap_match")
+  submissionMethod String?   @map("submission_method") @db.VarChar(50)
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  business  Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  directory CitationDirectory @relation(fields: [directoryId], references: [id])
+
+  @@map("citations")
+}
+
+model Review {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId          String    @map("business_id") @db.Uuid
+  googleReviewId      String?   @unique @map("google_review_id") @db.VarChar(255)
+  reviewerName        String?   @map("reviewer_name") @db.VarChar(255)
+  reviewerPhotoUrl    String?   @map("reviewer_photo_url") @db.VarChar(500)
+  starRating          Int?      @map("star_rating")
+  reviewText          String?   @map("review_text") @db.Text
+  reviewDate          DateTime? @map("review_date") @db.Timestamptz()
+  responseText        String?   @map("response_text") @db.Text
+  responseStatus      String    @default("pending") @map("response_status") @db.VarChar(50)
+  responseGeneratedAt DateTime? @map("response_generated_at") @db.Timestamptz()
+  responsePostedAt    DateTime? @map("response_posted_at") @db.Timestamptz()
+  approvalSentAt      DateTime? @map("approval_sent_at") @db.Timestamptz()
+  respondedBy         String?   @map("responded_by") @db.VarChar(50)
+  sentiment           String?   @db.VarChar(20)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model Keyword {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId      String   @map("business_id") @db.Uuid
+  keyword         String   @db.Text
+  isAutoGenerated Boolean  @default(true) @map("is_auto_generated")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  business Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  rankings KeywordRanking[]
+
+  @@map("keywords")
+}
+
+model KeywordRanking {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keywordId       String   @map("keyword_id") @db.Uuid
+  checkedAt       DateTime @default(now()) @map("checked_at") @db.Timestamptz()
+  mapsRank        Int?     @map("maps_rank")
+  organicRank     Int?     @map("organic_rank")
+  searchVolume    Int?     @map("search_volume")
+  competitorAbove String?  @map("competitor_above") @db.VarChar(255)
+
+  keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@map("keyword_rankings")
+}
+
+model Competitor {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId      String   @map("business_id") @db.Uuid
+  name            String?  @db.VarChar(255)
+  gbpLocationId   String?  @map("gbp_location_id") @db.VarChar(255)
+  websiteUrl      String?  @map("website_url") @db.VarChar(500)
+  address         String?  @db.VarChar(500)
+  isManuallyAdded Boolean  @default(false) @map("is_manually_added")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  business  Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  snapshots CompetitorSnapshot[]
+
+  @@map("competitors")
+}
+
+model CompetitorSnapshot {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  competitorId  String   @map("competitor_id") @db.Uuid
+  snapshotDate  DateTime @map("snapshot_date") @db.Date
+  reviewCount   Int?     @map("review_count")
+  avgRating     Decimal? @map("avg_rating") @db.Decimal(3, 2)
+  postCountWeek Int?     @map("post_count_this_week")
+  photoCount    Int?     @map("photo_count")
+
+  competitor Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@map("competitor_snapshots")
+}
+
+model WeeklyReport {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId         String    @map("business_id") @db.Uuid
+  weekOf             DateTime  @map("week_of") @db.Date
+  postsPublished     Int       @default(0) @map("posts_published")
+  citationsSubmitted Int       @default(0) @map("citations_submitted")
+  citationsLive      Int       @default(0) @map("citations_live")
+  reviewsResponded   Int       @default(0) @map("reviews_responded")
+  avgRatingThisWeek  Decimal?  @map("avg_rating_this_week") @db.Decimal(3, 2)
+  keywordsImproved   Int       @default(0) @map("keywords_improved")
+  keywordsDeclined   Int       @default(0) @map("keywords_declined")
+  reportHtml         String?   @map("report_html") @db.Text
+  sentAt             DateTime? @map("sent_at") @db.Timestamptz()
+  emailOpenedAt      DateTime? @map("email_opened_at") @db.Timestamptz()
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("weekly_reports")
+}
+
+model Subscription {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId         String    @map("business_id") @db.Uuid
+  whopMemberId       String?   @map("whop_member_id") @db.VarChar(255)
+  whopSubscriptionId String?   @map("whop_subscription_id") @db.VarChar(255)
+  plan               String    @default("starter") @db.VarChar(50)
+  status             String?   @db.VarChar(50)
+  trialStart         DateTime? @map("trial_start") @db.Timestamptz()
+  trialEnd           DateTime? @map("trial_end") @db.Timestamptz()
+  currentPeriodStart DateTime? @map("current_period_start") @db.Timestamptz()
+  currentPeriodEnd   DateTime? @map("current_period_end") @db.Timestamptz()
+  cancelledAt        DateTime? @map("cancelled_at") @db.Timestamptz()
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId String?  @map("business_id") @db.Uuid
+  jobType    String?  @map("job_type") @db.VarChar(100)
+  status     String?  @db.VarChar(50)
+  details    Json?    @db.JsonB
+  durationMs Int?     @map("duration_ms")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  business Business? @relation(fields: [businessId], references: [id])
+
+  @@map("audit_logs")
+}
