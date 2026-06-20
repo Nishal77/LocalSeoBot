@@ -1,38 +1,78 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# --- Dependencies ---
 /node_modules
 /.pnp
 .pnp.js
+.pnp.cjs
 .yarn/install-state.gz
+.pnpm-store
 
-# testing
-/coverage
-
-# next.js
+# --- Next.js ---
 /.next/
 /out/
 
-# production
+# --- Production / build output ---
 /build
+/dist
 
-# misc
-.DS_Store
-*.pem
+# --- Testing & browser automation ---
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Cursor Playwright MCP session logs and snapshots
+.playwright-mcp/
 
-# local env files
-.env*.local
+# Local QA screenshots (e.g. from browser testing)
+screenshot-*.png
 
-# vercel
+# --- Environment & secrets ---
+# Keep .env.example — it is the committed template for required variables.
+.env
+.env.*
+!.env.example
+
+# --- Deployment platforms ---
 .vercel
+.railway
 
-# typescript
+# --- Monitoring (Sentry) ---
+.sentryclirc
+
+# --- TypeScript ---
 *.tsbuildinfo
 next-env.d.ts
 
+# --- Prisma ---
+# Custom generated client output (default client lives under node_modules)
 /src/generated/prisma
+
+# --- Logs & debug ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+!*.log.example
+
+# --- Certificates & keys ---
+*.pem
+
+# --- IDE / editor ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Local AI assistant settings ---
+.claude/
