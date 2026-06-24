@@ -1,55 +1,47 @@
 export function HowItWorks() {
   return (
-    <section id="how" className="py-24 px-6 bg-white/[0.02] border-y border-zinc-800">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-16">
+    <section id="HowItWorks" className="py-24 px-6 bg-[#09090b] border-b border-zinc-800/80">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-20">
           <div className="inline-block text-xs font-bold px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 mb-4 uppercase tracking-widest">3 steps</div>
-          <h2 className="text-4xl font-black text-white mb-3">Setup once. Runs forever.</h2>
-          <p className="text-zinc-500">From signup to AI agent running in under 5 minutes.</p>
+          <h2 className="text-4xl font-semibold text-white mb-3 tracking-tight">Setup once. Runs forever.</h2>
+          <p className="text-zinc-400 text-sm">From signup to AI agent running in under 5 minutes.</p>
         </div>
 
         <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-7 top-8 bottom-8 w-px bg-gradient-to-b from-violet-500/50 via-blue-500/50 to-cyan-500/20 hidden md:block" />
-
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
             {[
               {
                 n: "1",
-                gradient: "from-violet-600 to-violet-700",
-                glow: "shadow-[0_0_20px_rgba(124,58,237,0.4)]",
-                title: "Connect your Google Business Profile",
-                desc: "One OAuth click. 30 seconds. We get access to post on your behalf, reply to reviews, and read your profile.",
-                time: "30 seconds",
+                title: "1. Connect your Google account",
               },
               {
                 n: "2",
-                gradient: "from-blue-600 to-blue-700",
-                glow: "shadow-[0_0_20px_rgba(37,99,235,0.4)]",
-                title: "See your instant SEO audit",
-                desc: "We scan your profile completeness, check current rankings, and show exactly what's hurting your visibility. Takes 60 seconds.",
-                time: "60 seconds",
+                title: "2. Bot audits your listing and gets to work immediately",
               },
               {
                 n: "3",
-                gradient: "from-emerald-600 to-emerald-700",
-                glow: "shadow-[0_0_20px_rgba(5,150,105,0.4)]",
-                title: "AI agent starts immediately",
-                desc: "Posts every Monday. Review responses within 2 hours. Citations daily. Monday report at 8am. You do nothing else.",
-                time: "Forever",
+                title: "3. Customers find you. You do nothing.",
               },
-            ].map(({ n, gradient, glow, title, desc, time }) => (
-              <div key={n} className="flex gap-6 p-6 rounded-2xl border border-zinc-800 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                <div className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} ${glow} flex items-center justify-center font-black text-xl text-white`}>
-                  {n}
+            ].map(({ n, title }) => (
+              <div key={n} className="flex flex-col items-center text-center p-4 relative">
+                
+                {/* Premium Cloud Graphic */}
+                <div className="relative w-32 h-32 flex items-center justify-center mb-8 flex-shrink-0">
+                  {/* Outer soft organic cloud blob */}
+                  <div className="absolute inset-0 bg-blue-500/[0.03] rounded-[60%_40%_30%_70%_/_60%_30%_70%_40%] blur-[4px] animate-[spin_30s_linear_infinite]" />
+                  {/* Mid organic cloud blob rotating other way */}
+                  <div className="absolute w-24 h-24 bg-blue-500/[0.08] rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] blur-[2px] animate-[spin_20s_linear_infinite_reverse]" />
+                  {/* Inner cloud core with soft blue glow */}
+                  <div className="absolute w-16 h-16 bg-blue-500/10 rounded-full blur-[8px]" />
+                  
+                  {/* Centered Step Number */}
+                  <span className="relative font-bold text-3xl text-blue-400 tracking-tight select-none">
+                    0{n}
+                  </span>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <h3 className="font-bold text-white text-lg">{title}</h3>
-                    <span className="text-xs text-zinc-500 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">{time}</span>
-                  </div>
-                  <p className="text-zinc-400 text-sm leading-relaxed">{desc}</p>
-                </div>
+                
+                <h3 className="font-semibold text-white text-lg mb-3 tracking-tight">{title}</h3>
               </div>
             ))}
           </div>

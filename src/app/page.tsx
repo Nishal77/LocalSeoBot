@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/landing/Navbar";
-import { HeroSection } from "@/components/landing/HeroSection";
+import { Hero } from "@/components/landing/Hero";
 import { Stats } from "@/components/landing/Stats";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { Features } from "@/components/landing/Features";
@@ -38,17 +38,18 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-white overflow-x-hidden">
       <Navbar />
-      
+
       {/* Vertical bordered container for Hero section only */}
-      <div className="max-w-6xl mx-auto border-x border-zinc-800 bg-[#09090b]">
-        <HeroSection />
+      <div className="max-w-6xl mx-auto border-x border-t border-b border-zinc-800 bg-[#09090b] mt-20">
+        <Hero />
       </div>
 
       {/* Other sections outside the layout borders */}
+      <HowItWorks />
       <Stats stats={stats} />
       <TrustBar />
       <Features />
-      <HowItWorks />
+      
       <VsAgency />
       <TrustSignals />
       <Pricing />

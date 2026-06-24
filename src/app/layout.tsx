@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { CrispChat } from "@/components/crisp-chat";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "RankAgent — AI Local SEO Agent",
@@ -16,8 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className="dark bg-[#09090b]">
+      <body className="antialiased bg-[#09090b] text-white overscroll-none">
         {children}
         <CrispChat />
       </body>

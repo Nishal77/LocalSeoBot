@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,6 @@ interface AuditResult {
 }
 
 function OnboardingWizard() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [step, setStep] = useState(1);
