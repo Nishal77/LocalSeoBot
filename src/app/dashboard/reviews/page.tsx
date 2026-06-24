@@ -67,11 +67,21 @@ export default async function ReviewsPage() {
                 <p className="text-sm">{review.reviewText ?? "(No text)"}</p>
                 {review.responseText && (
                   <div className="rounded-md bg-gray-50 p-3 border-l-2 border-primary">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="text-xs font-medium">Bot response</span>
                       <Badge variant={review.responseStatus === "posted" ? "success" : "secondary"}>
                         {review.responseStatus}
                       </Badge>
+                      {review.responseStatus === "posted" && review.respondedBy === "user" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          ✓ AI drafted · You approved
+                        </span>
+                      )}
+                      {review.responseStatus === "posted" && review.respondedBy === "bot" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-xs font-medium text-gray-500">
+                          AI drafted · Auto-posted
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">{review.responseText}</p>
                   </div>

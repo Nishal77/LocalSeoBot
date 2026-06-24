@@ -1,96 +1,68 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { queues } from "@/lib/queue";
-import { addDays } from "date-fns";
+import { getDodoClient } from "@/lib/dodo";
+import { checkRateLimit } from "@/lib/ratelimit";
+import { z } from "zod";
 
+const BASE = process.env.NEXTAUTH_URL ?? "https://rankagent.run";
+
+const schema = z.object({ businessId: z.string().uuid() });
+
+/**
+ * POST /api/onboarding/complete
+ * Step 7 — creates a DodoPayments checkout session and returns the URL.
+ * Onboarding is NOT marked complete here. The billing webhook
+ * (SubscriptionActiveWebhookEvent) activates the business and starts bot jobs
+ * after successful payment.
+ */
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const body = await req.json() as { businessId?: string };
-    const { businessId } = body;
+  const limited = await checkRateLimit(session.user.id, "checkout");
+  if (limited) return limited;
 
-    if (!businessId) {
-      return NextResponse.json({ error: "businessId required" }, { status: 400 });
+  try {
+    const parsed = schema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
     }
+    const { businessId } = parsed.data;
 
     const business = await prisma.business.findFirst({
       where: { id: businessId, userId: session.user.id },
+      include: { user: true },
     });
 
     if (!business) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
-    const trialEnd = addDays(new Date(), 14);
+    const productId = process.env.DODO_PRODUCT_ID;
+    if (!productId) {
+      return NextResponse.json({ error: "Billing not configured" }, { status: 503 });
+    }
 
-    // Create trial subscription
-    await prisma.subscription.upsert({
-      where: {
-        id: (await prisma.subscription.findFirst({ where: { businessId } }))?.id ?? "new",
+    const dodo = getDodoClient();
+
+    const checkoutSession = await dodo.checkoutSessions.create({
+      product_cart: [{ product_id: productId, quantity: 1 }],
+      customer: {
+        email: business.user.email,
+        name: business.user.name ?? business.name,
       },
-      create: {
-        businessId,
-        plan: "starter",
-        status: "trialing",
-        trialStart: new Date(),
-        trialEnd,
-      },
-      update: {
-        status: "trialing",
-        trialStart: new Date(),
-        trialEnd,
-      },
-    });
+      subscription_data: { trial_period_days: 14 },
+      return_url: `${BASE}/dashboard?payment=success`,
+    } as Parameters<typeof dodo.checkoutSessions.create>[0]);
 
-    await prisma.business.update({
-      where: { id: businessId },
-      data: { onboardingComplete: true, trialEndsAt: trialEnd },
-    });
+    const checkoutUrl = (checkoutSession as unknown as { checkout_url: string }).checkout_url;
 
-    // Schedule the recurring jobs for this business
-    // Review poll every 30 minutes (via cron-like repeating job)
-    await queues.reviewPoll.add(
-      "poll",
-      { businessId },
-      { repeat: { every: 30 * 60 * 1000 } }
-    );
-
-    // GBP post generate every Monday at 6am
-    await queues.gbpPostGenerate.add(
-      "weekly",
-      { businessId },
-      { repeat: { pattern: "0 6 * * 1" } }
-    );
-
-    // Citation batch daily at 9am
-    await queues.citationSubmitBatch.add(
-      "daily",
-      { businessId },
-      { repeat: { pattern: "0 9 * * *" } }
-    );
-
-    // Rankings every Monday at 5am
-    await queues.rankingCheck.add(
-      "weekly",
-      { businessId },
-      { repeat: { pattern: "0 5 * * 1" } }
-    );
-
-    // Report generate every Monday at 7am
-    await queues.reportGenerate.add(
-      "weekly",
-      { businessId },
-      { repeat: { pattern: "0 7 * * 1" } }
-    );
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ checkoutUrl });
   } catch (err) {
     console.error("Onboarding complete error:", err);
-    return NextResponse.json({ error: "Failed to complete onboarding" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
   }
 }

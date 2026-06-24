@@ -28,7 +28,7 @@ export async function GET() {
       trialEnd: sub.trialEnd,
       currentPeriodEnd: sub.currentPeriodEnd,
       daysLeftInTrial,
-      whopMemberId: sub.whopMemberId,
+      dodoSubscriptionId: sub.dodoSubscriptionId,
     },
   });
 }

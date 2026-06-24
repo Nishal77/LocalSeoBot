@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { queues } from "@/lib/queue";
+import { createHmac } from "crypto";
 
 export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -14,10 +15,9 @@ export async function POST(req: Request) {
   const review = await prisma.review.findUnique({ where: { id: reviewId } });
   if (!review) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Validate token = sha256(reviewId + secret)
-  const expectedToken = Buffer.from(
-    `${reviewId}:${process.env.NEXTAUTH_SECRET}`
-  ).toString("base64url").slice(0, 32);
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+  const expectedToken = createHmac("sha256", secret).update(reviewId).digest("hex");
 
   if (token !== expectedToken) {
     return NextResponse.json({ error: "Invalid token" }, { status: 403 });

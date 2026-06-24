@@ -24,6 +24,7 @@ import { processReportGenerate } from "./processors/report-generate";
 import { processReportSend } from "./processors/report-send";
 import { processOnboardingAudit } from "./processors/onboarding-audit";
 import { processCompetitorMonitor } from "./processors/competitor-monitor";
+import { processCitationVerifyLive } from "./processors/citation-verify-live";
 
 const workerOptions: WorkerOptions = {
   connection,
@@ -41,6 +42,7 @@ const workers = [
   new Worker("report.send", processReportSend, workerOptions),
   new Worker("onboarding.audit", processOnboardingAudit, workerOptions),
   new Worker("competitor.monitor", processCompetitorMonitor, workerOptions),
+  new Worker("citation.verify.live", processCitationVerifyLive, workerOptions),
 ];
 
 for (const worker of workers) {

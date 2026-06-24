@@ -171,12 +171,17 @@ function OnboardingWizard() {
     if (!businessId) return;
     setLoading(true);
     try {
-      await fetch("/api/onboarding/complete", {
+      const res = await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId }),
       });
-      router.push("/dashboard");
+      const data = await res.json() as { checkoutUrl?: string; error?: string };
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        setError(data.error ?? "Failed to create checkout session");
+      }
     } catch (err) {
       setError(String(err));
     } finally {
@@ -188,7 +193,7 @@ function OnboardingWizard() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="text-2xl font-bold text-primary mb-2">LocalSEOBot</div>
+          <div className="text-2xl font-bold text-primary mb-2">RankAgent AI</div>
           <p className="text-muted-foreground">Set up your account in a few minutes</p>
         </div>
 
@@ -543,7 +548,7 @@ function OnboardingWizard() {
                     <div className="text-2xl font-bold">
                       $99<span className="text-sm font-normal text-muted-foreground">/month</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">LocalSEOBot Starter</div>
+                    <div className="text-sm text-muted-foreground">RankAgent AI Starter</div>
                   </div>
                   <div className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
                     14 days free

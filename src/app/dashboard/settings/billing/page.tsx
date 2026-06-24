@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CheckCircle, AlertTriangle, Clock } from "lucide-react";
 
-export const metadata = { title: "Billing — LocalSEOBot" };
+export const metadata = { title: "Billing — RankAgent AI" };
 
 export default async function BillingPage() {
   const session = await auth();
@@ -41,7 +41,7 @@ export default async function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Current plan</CardTitle>
-          <CardDescription>LocalSEOBot Starter — $99/month</CardDescription>
+          <CardDescription>RankAgent AI Starter — $99/month</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {sub ? (
@@ -88,7 +88,7 @@ export default async function BillingPage() {
 
               <div className="pt-2">
                 <Link href="/api/billing/portal">
-                  <Button variant="outline">Manage billing on Whop</Button>
+                  <Button variant="outline">Manage billing</Button>
                 </Link>
               </div>
             </>

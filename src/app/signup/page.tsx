@@ -49,7 +49,7 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
-            <div className="text-2xl font-bold text-primary">LocalSEOBot</div>
+            <div className="text-2xl font-bold text-primary">RankAgent AI</div>
           </div>
           <CardTitle className="text-2xl text-center">Start your free trial</CardTitle>
           <CardDescription className="text-center">

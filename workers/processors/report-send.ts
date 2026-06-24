@@ -25,7 +25,7 @@ export async function processReportSend(job: Job) {
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL!,
       to: business.user.email,
-      subject: `Your LocalSEOBot report — week of ${format(report.weekOf, "MMMM d, yyyy")}`,
+      subject: `Your RankAgent AI report — week of ${format(report.weekOf, "MMMM d, yyyy")}`,
       html: report.reportHtml ?? "<p>Report not available.</p>",
     });
 

@@ -1,18 +1,23 @@
-import { Job } from "bullmq";
+import type { Job } from "bullmq";
 import { prisma } from "@/lib/prisma";
 import { generateText } from "@/lib/anthropic";
 import { replyToGBPReview } from "@/lib/gbp";
 import { logAudit } from "@/lib/audit";
+import { sendReviewApprovalEmail } from "../lib/email";
 
 export async function processReviewRespond(job: Job) {
-  const { businessId, reviewId } = job.data as { businessId: string; reviewId: string };
+  const { businessId, reviewId, skipGeneration } = job.data as {
+    businessId: string;
+    reviewId: string;
+    skipGeneration?: boolean;
+  };
   const start = Date.now();
 
   try {
     const [business, review] = await Promise.all([
       prisma.business.findUnique({
         where: { id: businessId },
-        include: { botSettings: true },
+        include: { botSettings: true, user: true },
       }),
       prisma.review.findUnique({ where: { id: reviewId } }),
     ]);
@@ -21,20 +26,27 @@ export async function processReviewRespond(job: Job) {
     if (review.responseStatus === "posted") return;
 
     const stars = review.starRating ?? 0;
-    let toneGuide: string;
-    if (stars >= 5) {
-      toneGuide = "grateful, warm response, invite them back";
-    } else if (stars === 4) {
-      toneGuide = "acknowledge any mild complaint specifically, invite them to reach out directly";
-    } else if (stars === 3) {
-      toneGuide = "empathetic response, address specific concerns, offer to make it right";
+    let responseText: string;
+
+    if (skipGeneration && review.responseText) {
+      // Auto-approve path: response already generated, skip Claude
+      responseText = review.responseText;
     } else {
-      toneGuide = "calm, professional, non-defensive, invite private resolution, do NOT offer discounts publicly";
-    }
+      let toneGuide: string;
+      if (stars >= 5) {
+        toneGuide = "grateful, warm response, invite them back";
+      } else if (stars === 4) {
+        toneGuide = "acknowledge any mild complaint specifically, invite them to reach out directly";
+      } else if (stars === 3) {
+        toneGuide = "empathetic response, address specific concerns, offer to make it right";
+      } else {
+        toneGuide =
+          "calm, professional, non-defensive, invite private resolution, do NOT offer discounts publicly";
+      }
 
-    const firstName = review.reviewerName?.split(" ")[0] ?? "there";
+      const firstName = review.reviewerName?.split(" ")[0] ?? "there";
 
-    const prompt = `You are responding to a Google review on behalf of ${business.name}, a ${business.category ?? "local business"} in ${business.city ?? "the area"}.
+      const prompt = `You are responding to a Google review on behalf of ${business.name}, a ${business.category ?? "local business"} in ${business.city ?? "the area"}.
 
 Review (star rating: ${stars}/5):
 "${review.reviewText ?? "(no text)"}"
@@ -55,20 +67,39 @@ Tone: ${business.botSettings?.postTone ?? "professional"}
 
 Output only the response text. No commentary.`;
 
-    const responseText = await generateText(prompt, 300);
+      responseText = await generateText(prompt, 300);
+    }
+
+    const needsApproval = !skipGeneration && (business.botSettings?.reviewApprovalRequired ?? false);
 
     await prisma.review.update({
       where: { id: reviewId },
       data: {
         responseText,
-        responseGeneratedAt: new Date(),
-        responseStatus: business.botSettings?.reviewApprovalRequired
-          ? "pending_approval"
-          : "draft",
+        responseGeneratedAt: skipGeneration ? undefined : new Date(),
+        responseStatus: needsApproval ? "pending_approval" : "draft",
+        sentiment: stars >= 4 ? "positive" : stars === 3 ? "neutral" : "negative",
       },
     });
 
-    if (!business.botSettings?.reviewApprovalRequired) {
+    if (needsApproval) {
+      // Send approval email to business owner
+      await sendReviewApprovalEmail({
+        to: business.user.email,
+        businessName: business.name,
+        reviewId,
+        reviewerName: review.reviewerName ?? "Customer",
+        starRating: stars,
+        reviewText: review.reviewText ?? "(no text)",
+        responseText,
+      });
+
+      await prisma.review.update({
+        where: { id: reviewId },
+        data: { approvalSentAt: new Date() },
+      });
+    } else {
+      // Post directly to GBP
       if (!business.gbpAccountId || !business.gbpLocationId || !review.googleReviewId) {
         throw new Error("Missing GBP credentials for review reply");
       }
@@ -95,14 +126,13 @@ Output only the response text. No commentary.`;
       businessId,
       jobType: "review.respond",
       status: "success",
-      details: { reviewId, stars },
+      details: { reviewId, stars, reviewerName: review.reviewerName, needsApproval },
       durationMs: Date.now() - start,
     });
   } catch (err) {
-    await prisma.review.update({
-      where: { id: reviewId },
-      data: { responseStatus: "failed" },
-    }).catch(() => {});
+    await prisma.review
+      .update({ where: { id: reviewId }, data: { responseStatus: "failed" } })
+      .catch(() => {});
 
     await logAudit({
       businessId,

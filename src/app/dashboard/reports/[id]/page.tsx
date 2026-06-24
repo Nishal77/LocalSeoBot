@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export const metadata = { title: "Weekly Report — LocalSEOBot" };
+export const metadata = { title: "Weekly Report — RankAgent AI" };
 
 export default async function ReportDetailPage({ params }: { params: { id: string } }) {
   const session = await auth();

@@ -76,3 +76,9 @@ Desktop.ini
 
 # --- Local AI assistant settings ---
 .claude/
+
+# --- Graphify (local code analysis, not for CI) ---
+graphify-out/
+
+# --- GitHub Actions (managed separately, not part of this repo) ---
+.github/

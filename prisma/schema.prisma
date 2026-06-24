@@ -123,8 +123,8 @@ model BotSettings {
   businessId               String   @unique @map("business_id") @db.Uuid
   postTone                 String   @default("professional") @map("post_tone") @db.VarChar(50)
   postFrequency            String   @default("weekly") @map("post_frequency") @db.VarChar(50)
-  postApprovalRequired     Boolean  @default(false) @map("post_approval_required")
-  reviewApprovalRequired   Boolean  @default(false) @map("review_approval_required")
+  postApprovalRequired     Boolean  @default(true) @map("post_approval_required")
+  reviewApprovalRequired   Boolean  @default(true) @map("review_approval_required")
   reviewAutoPostAfterHours Int      @default(4) @map("review_auto_post_after_hours")
   reportDay                String   @default("monday") @map("report_day") @db.VarChar(20)
   reportTime               String   @default("08:00") @map("report_time") @db.VarChar(10)
@@ -159,6 +159,7 @@ model GbpPost {
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
+  @@index([businessId])
   @@map("gbp_posts")
 }
 
@@ -196,6 +197,8 @@ model Citation {
   business  Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
   directory CitationDirectory @relation(fields: [directoryId], references: [id])
 
+  @@index([businessId])
+  @@index([directoryId])
   @@map("citations")
 }
 
@@ -219,6 +222,8 @@ model Review {
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
+  @@index([businessId])
+  @@index([responseStatus])
   @@map("reviews")
 }
 
@@ -233,6 +238,7 @@ model Keyword {
   business Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
   rankings KeywordRanking[]
 
+  @@index([businessId])
   @@map("keywords")
 }
 
@@ -247,6 +253,8 @@ model KeywordRanking {
 
   keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
 
+  @@index([keywordId])
+  @@index([checkedAt])
   @@map("keyword_rankings")
 }
 
@@ -263,6 +271,7 @@ model Competitor {
   business  Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
   snapshots CompetitorSnapshot[]
 
+  @@index([businessId])
   @@map("competitors")
 }
 
@@ -277,6 +286,7 @@ model CompetitorSnapshot {
 
   competitor Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
+  @@index([competitorId])
   @@map("competitor_snapshots")
 }
 
@@ -298,22 +308,24 @@ model WeeklyReport {
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
+  @@index([businessId])
+  @@unique([businessId, weekOf])
   @@map("weekly_reports")
 }
 
 model Subscription {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  businessId         String    @map("business_id") @db.Uuid
-  whopMemberId       String?   @map("whop_member_id") @db.VarChar(255)
-  whopSubscriptionId String?   @map("whop_subscription_id") @db.VarChar(255)
-  plan               String    @default("starter") @db.VarChar(50)
-  status             String?   @db.VarChar(50)
-  trialStart         DateTime? @map("trial_start") @db.Timestamptz()
-  trialEnd           DateTime? @map("trial_end") @db.Timestamptz()
-  currentPeriodStart DateTime? @map("current_period_start") @db.Timestamptz()
-  currentPeriodEnd   DateTime? @map("current_period_end") @db.Timestamptz()
-  cancelledAt        DateTime? @map("cancelled_at") @db.Timestamptz()
-  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId           String    @map("business_id") @db.Uuid
+  dodoSubscriptionId   String?   @map("dodo_subscription_id") @db.VarChar(255)
+  dodoCustomerId       String?   @map("dodo_customer_id") @db.VarChar(255)
+  plan                 String    @default("starter") @db.VarChar(50)
+  status               String?   @db.VarChar(50)
+  trialStart           DateTime? @map("trial_start") @db.Timestamptz()
+  trialEnd             DateTime? @map("trial_end") @db.Timestamptz()
+  currentPeriodStart   DateTime? @map("current_period_start") @db.Timestamptz()
+  currentPeriodEnd     DateTime? @map("current_period_end") @db.Timestamptz()
+  cancelledAt          DateTime? @map("cancelled_at") @db.Timestamptz()
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz()
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
@@ -331,5 +343,7 @@ model AuditLog {
 
   business Business? @relation(fields: [businessId], references: [id])
 
+  @@index([businessId])
+  @@index([createdAt])
   @@map("audit_logs")
 }

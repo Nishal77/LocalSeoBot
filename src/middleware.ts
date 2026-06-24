@@ -6,6 +6,7 @@ export const config = {
     "/onboarding/:path*",
     "/api/dashboard/:path*",
     "/api/posts/:path*",
+    "/api/citations/:path*",
     "/api/settings/:path*",
     "/api/reviews/:path*",
     "/api/rankings/:path*",

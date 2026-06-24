@@ -11,6 +11,53 @@ interface DataForSEOResult {
   }[];
 }
 
+// Module-level cache: avoids re-fetching for businesses sharing the same city
+const locationCodeCache = new Map<string, number>();
+
+async function resolveLocationCode(city: string | null, state: string | null): Promise<number> {
+  const US_NATIONAL = 2840;
+  if (!city) return US_NATIONAL;
+
+  const cacheKey = `${city}|${state ?? ""}`.toLowerCase();
+  if (locationCodeCache.has(cacheKey)) return locationCodeCache.get(cacheKey)!;
+
+  const login = process.env.DATAFORSEO_LOGIN;
+  const password = process.env.DATAFORSEO_PASSWORD;
+  if (!login || !password) return US_NATIONAL;
+
+  try {
+    const credentials = Buffer.from(`${login}:${password}`).toString("base64");
+    const res = await fetch("https://api.dataforseo.com/v3/serp/google/locations", {
+      headers: { Authorization: `Basic ${credentials}` },
+    });
+    if (!res.ok) return US_NATIONAL;
+
+    const data = await res.json() as { result?: { location_code: number; location_name: string; location_type: string }[] };
+    const locations = data.result ?? [];
+
+    const cityLower = city.toLowerCase();
+    const stateLower = state?.toLowerCase() ?? "";
+
+    // Prefer "City,State,United States" exact match first, then city-only
+    const match =
+      locations.find((l) =>
+        l.location_type === "City" &&
+        l.location_name.toLowerCase().includes(cityLower) &&
+        (stateLower ? l.location_name.toLowerCase().includes(stateLower) : true)
+      ) ??
+      locations.find((l) =>
+        l.location_type === "City" &&
+        l.location_name.toLowerCase().startsWith(cityLower + ",")
+      );
+
+    const code = match?.location_code ?? US_NATIONAL;
+    locationCodeCache.set(cacheKey, code);
+    return code;
+  } catch {
+    return US_NATIONAL;
+  }
+}
+
 async function checkKeywordRank(
   keyword: string,
   businessName: string,
@@ -73,7 +120,7 @@ export async function processRankingCheck(job: Job) {
 
     if (!business) return;
 
-    const locationCode = 1023191; // Default: US national; should be resolved from city
+    const locationCode = await resolveLocationCode(business.city ?? null, business.state ?? null);
 
     for (const kw of business.keywords) {
       try {

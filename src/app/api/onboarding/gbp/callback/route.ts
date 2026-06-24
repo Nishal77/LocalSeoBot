@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/crypto";
+import { sendGBPConnectedEmail } from "@/lib/emails";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -15,6 +16,15 @@ export async function GET(req: Request) {
 
   if (!code || !businessId) {
     return NextResponse.redirect(new URL("/onboarding?error=gbp_failed", req.url));
+  }
+
+  // Ownership check — businessId in state must belong to the logged-in user
+  const ownedBusiness = await prisma.business.findFirst({
+    where: { id: businessId, userId: session.user.id },
+    select: { id: true },
+  });
+  if (!ownedBusiness) {
+    return NextResponse.redirect(new URL("/onboarding?error=gbp_unauthorized", req.url));
   }
 
   try {
@@ -67,7 +77,17 @@ export async function GET(req: Request) {
       },
     });
 
-    // Redirect back to onboarding with GBP connected signal
+    // Send GBP connected confirmation email (fire-and-forget)
+    const business = await prisma.business.findUnique({
+      where: { id: businessId },
+      include: { user: true },
+    });
+    if (business) {
+      sendGBPConnectedEmail({ to: business.user.email, businessName: business.name }).catch(
+        (err) => console.error("GBP connected email failed:", err)
+      );
+    }
+
     return NextResponse.redirect(
       new URL(`/onboarding?gbp=connected&businessId=${businessId}`, req.url)
     );

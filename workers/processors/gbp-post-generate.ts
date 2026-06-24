@@ -1,8 +1,9 @@
-import { Job } from "bullmq";
+import type { Job } from "bullmq";
 import { prisma } from "@/lib/prisma";
 import { generateText } from "@/lib/anthropic";
 import { logAudit } from "@/lib/audit";
 import { queues } from "@/lib/queue";
+import { sendPostApprovalEmail } from "../lib/email";
 
 const POST_TOPICS = [
   "weekly tip",
@@ -15,6 +16,45 @@ const POST_TOPICS = [
   "community connection",
 ];
 
+// Maps business category to Unsplash search terms for relevant imagery
+const CATEGORY_IMAGE_QUERIES: Record<string, string> = {
+  dentist: "dental clinic bright modern",
+  plumber: "plumbing pipes tools",
+  hvac: "air conditioning hvac technician",
+  restaurant: "restaurant food plating",
+  salon: "hair salon styling",
+  gym: "fitness gym workout",
+  lawyer: "law office professional",
+  realtor: "real estate house keys",
+  doctor: "medical clinic doctor",
+  default: "local business storefront professional",
+};
+
+async function fetchUnsplashImage(category: string): Promise<string | null> {
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key) return null;
+
+  const catLower = (category ?? "").toLowerCase();
+  const query =
+    Object.entries(CATEGORY_IMAGE_QUERIES).find(([k]) => catLower.includes(k))?.[1] ??
+    CATEGORY_IMAGE_QUERIES.default;
+
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&content_filter=high`,
+      {
+        headers: { Authorization: `Client-ID ${key}` },
+        signal: AbortSignal.timeout(8_000),
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json() as { urls?: { regular?: string } };
+    return data.urls?.regular ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function processGbpPostGenerate(job: Job) {
   const { businessId } = job.data as { businessId: string };
   const start = Date.now();
@@ -22,11 +62,16 @@ export async function processGbpPostGenerate(job: Job) {
   try {
     const business = await prisma.business.findUnique({
       where: { id: businessId },
-      include: { botSettings: true },
+      include: { botSettings: true, user: true },
     });
 
     if (!business || business.status !== "active") {
-      await logAudit({ businessId, jobType: "gbp.post.generate", status: "skipped", details: { reason: "business inactive" } });
+      await logAudit({
+        businessId,
+        jobType: "gbp.post.generate",
+        status: "skipped",
+        details: { reason: "business inactive" },
+      });
       return;
     }
 
@@ -53,23 +98,44 @@ Business details:
 Do not use emojis. Do not use hashtags. Write in plain English.
 Output only the post text. No commentary.`;
 
-    const content = await generateText(prompt, 500);
+    const [content, imageUrl] = await Promise.all([
+      generateText(prompt, 500),
+      fetchUnsplashImage(business.category ?? ""),
+    ]);
 
     const weekOf = new Date();
     weekOf.setHours(0, 0, 0, 0);
+
+    const needsApproval = settings?.postApprovalRequired ?? false;
 
     const post = await prisma.gbpPost.create({
       data: {
         businessId,
         content,
+        imageUrl: imageUrl ?? undefined,
         postType: "STANDARD",
-        status: settings?.postApprovalRequired ? "pending_approval" : "draft",
+        status: needsApproval ? "pending_approval" : "draft",
         weekOf,
         ctaType: "CALL",
       },
     });
 
-    if (!settings?.postApprovalRequired) {
+    if (needsApproval) {
+      // Send approval email to business owner
+      const ownerEmail = business.user.email;
+      await sendPostApprovalEmail({
+        to: ownerEmail,
+        businessName: business.name,
+        postId: post.id,
+        content,
+      });
+
+      await prisma.gbpPost.update({
+        where: { id: post.id },
+        data: { approvalSentAt: new Date() },
+      });
+    } else {
+      // No approval needed — queue publish immediately
       await queues.gbpPostPublish.add("publish", { businessId, postId: post.id });
     }
 
@@ -77,7 +143,7 @@ Output only the post text. No commentary.`;
       businessId,
       jobType: "gbp.post.generate",
       status: "success",
-      details: { postId: post.id, topic },
+      details: { postId: post.id, topic, hasImage: !!imageUrl, needsApproval },
       durationMs: Date.now() - start,
     });
 

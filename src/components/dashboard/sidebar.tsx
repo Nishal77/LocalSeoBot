@@ -51,7 +51,8 @@ export function DashboardSidebar({ businessName, hasGBP, status, trialEndsAt }: 
       <div className="p-6 border-b">
         <div className="flex items-center gap-2">
           <Bot className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">LocalSEOBot</span>
+          <span className="font-bold text-lg">RankAgent</span>
+          <span className="text-[10px] font-bold px-1 py-0.5 rounded bg-gradient-to-r from-violet-600 to-blue-600 text-white leading-none">AI</span>
         </div>
         <div className="mt-2 text-sm font-medium text-muted-foreground truncate">
           {businessName}
