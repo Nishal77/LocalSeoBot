@@ -1,68 +1,208 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import {
+  TrendingUp,
+  Layers,
+  MessageSquare,
+  Target,
+  Mail,
+  Eye,
+  Settings,
+  UserCheck,
+  Code,
+  Zap,
+  Check
+} from "lucide-react";
 
 export function Pricing() {
+  const [isAnnual, setIsAnnual] = useState(false);
+
+  const plans = [
+    {
+      name: "Starter",
+      priceMonthly: "$49",
+      priceAnnual: "$49",
+      desc: "For businesses just getting started with local SEO.",
+      cta: "Start with Starter",
+      features: [
+        { icon: TrendingUp, text: "1 GBP post/week (AI)" },
+        { icon: MessageSquare, text: "All reviews responded to (AI)" },
+        { icon: Layers, text: "Top 50 citation directories" },
+        { icon: Target, text: "10 keywords tracked weekly" },
+        { icon: Mail, text: "Monday email report" },
+        { icon: Zap, text: "7-day free trial" },
+      ],
+    },
+    {
+      name: "Pro",
+      priceMonthly: "$99",
+      priceAnnual: "$79",
+      desc: "For businesses serious about ranking #1 locally.",
+      cta: "Start with Pro",
+      features: [
+        { icon: Check, text: "Everything in Starter" },
+        { icon: Layers, text: "200+ citation directories (ongoing)" },
+        { icon: Target, text: "20 keywords tracked weekly" },
+        { icon: Eye, text: "Competitor monitoring (5 competitors)" },
+        { icon: Settings, text: "Post + review approval mode" },
+        { icon: MessageSquare, text: "Review request campaigns via SMS" },
+        { icon: Zap, text: "14-day free trial" },
+      ],
+    },
+    {
+      name: "Growth",
+      priceMonthly: "$199",
+      priceAnnual: "$159",
+      desc: "For multi-location brands & marketing agencies.",
+      cta: "Start with Growth",
+      features: [
+        { icon: Check, text: "Everything in Pro × 3 locations" },
+        { icon: Layers, text: "Unlimited keywords per location" },
+        { icon: Settings, text: "10 competitors monitored per location" },
+        { icon: UserCheck, text: "PDF reports (white-label ready)" },
+        { icon: Mail, text: "Priority email support" },
+        { icon: MessageSquare, text: "Review campaigns (SMS & Email)" },
+        { icon: Code, text: "Custom avoid-topics per location" },
+        { icon: Zap, text: "14-day free trial" },
+      ],
+    },
+  ];
+
   return (
-    <section id="pricing" className="py-24 px-6">
-      <div className="max-w-lg mx-auto">
-        <div className="text-center mb-12">
-          <div className="inline-block text-xs font-bold px-3 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 mb-4 uppercase tracking-widest">Pricing</div>
-          <h2 className="text-4xl font-black text-white mb-3">One plan. Everything included.</h2>
-          <p className="text-zinc-500">No agency fees. No contracts. Cancel anytime.</p>
+    <section id="pricing" className="relative py-24 bg-[#09090b] text-white overflow-hidden border-t border-zinc-800">
+      {/* Blueprint grid background */}
+      <div className="absolute inset-0 h-[450px] bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none opacity-40 z-0" />
+
+      {/* Header */}
+      <div className="max-w-3xl mx-auto text-center px-6 mb-16 flex flex-col items-center">
+        {/* Capsule Badge */}
+        <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-medium text-zinc-300 mb-6 tracking-wide backdrop-blur-md select-none">
+          Pricing
         </div>
 
-        <div className="relative">
-          {/* Glow */}
-          <div className="absolute inset-0 bg-gradient-to-b from-violet-600/30 to-blue-600/20 rounded-3xl blur-xl" />
+        {/* Section Headline */}
+        <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white leading-[1.15]">
+          One plan. Everything included.
+        </h2>
+      </div>
 
-          <div className="relative rounded-3xl border border-violet-500/30 bg-zinc-900 overflow-hidden">
-            {/* Top gradient bar */}
-            <div className="h-1 bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500" />
+      {/* Pricing Container Grid */}
+      <div className="max-w-6xl mx-auto px-6 relative mb-16 z-10">
+        <div className="relative border border-zinc-800 bg-black/40 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-800 overflow-hidden">
 
-            <div className="p-8">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <div className="text-sm text-zinc-400 mb-1 font-medium">RankAgent AI · Starter</div>
-                  <div className="flex items-end gap-2">
-                    <span className="text-6xl font-black text-white">$99</span>
-                    <span className="text-zinc-400 mb-2 text-lg">/month</span>
+          {/* CAD Grid Intersection Ticks */}
+          {/* Outer corners */}
+          <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+          <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+          <div className="absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+          <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+
+          {/* Internal column ticks */}
+          <div className="hidden md:block absolute top-0 left-[33.333%] -translate-x-1/2 -translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+          <div className="hidden md:block absolute bottom-0 left-[33.333%] -translate-x-1/2 translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+          <div className="hidden md:block absolute top-0 left-[66.666%] -translate-x-1/2 -translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+          <div className="hidden md:block absolute bottom-0 left-[66.666%] -translate-x-1/2 translate-y-1/2 text-zinc-600/80 font-mono text-sm select-none pointer-events-none z-20">+</div>
+
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className="relative flex flex-col justify-between p-8 md:p-10 min-h-[520px] overflow-hidden"
+            >
+              {plan.name === "Pro" && (
+                <>
+                  {/* Blue radial glow at the bottom of Pro (Popular) column */}
+                  <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[radial-gradient(circle_at_bottom,rgba(59,130,246,0.12),transparent_75%)] pointer-events-none z-0" />
+                </>
+              )}
+
+              <div className="relative z-10">
+                {/* Plan Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-white leading-none">{plan.name}</h3>
+                    {plan.name === "Pro" && (
+                      <span className="bg-white text-zinc-950 text-[9px] font-black px-1.5 py-0.5 rounded tracking-widest uppercase select-none">
+                        POPULAR
+                      </span>
+                    )}
                   </div>
-                  <div className="text-zinc-500 text-sm">per location · billed monthly</div>
-                </div>
-                <div className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-                  14-day free trial
-                </div>
-              </div>
-
-              <div className="space-y-3 mb-8">
-                {[
-                  "1 AI-written GBP post every week",
-                  "200+ citation directory submissions",
-                  "Review responses within 2 hours",
-                  "20 keywords tracked weekly",
-                  "Monday morning email report",
-                  "Competitor monitoring (5 competitors)",
-                  "Post + review approval mode",
-                  "No contracts · Cancel anytime",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="h-3 w-3 text-emerald-400" />
+                  {plan.name !== "Starter" && (
+                    <div className="flex items-center gap-1.5 select-none">
+                      <button
+                        onClick={() => setIsAnnual(!isAnnual)}
+                        className={`w-7 h-4.5 rounded-full p-0.5 transition-colors duration-200 border border-zinc-700/60 ${isAnnual ? "bg-white" : "bg-zinc-800"
+                          }`}
+                      >
+                        <div
+                          className={`w-3 h-3 rounded-full transition-all duration-200 ${isAnnual ? "translate-x-3 bg-zinc-950" : "translate-x-0 bg-zinc-500"
+                            }`}
+                        />
+                      </button>
+                      <span className="text-[8px] font-bold tracking-wider text-zinc-500">ANNUAL</span>
                     </div>
-                    <span className="text-zinc-300">{item}</span>
-                  </div>
-                ))}
+                  )}
+                </div>
+
+                <p className="text-zinc-500 text-xs mt-2 font-medium">{plan.desc}</p>
+
+                {/* Price block */}
+                <div className="flex items-baseline gap-1.5 mt-8 mb-10">
+                  <span className="text-5xl font-semibold tracking-tight text-white leading-none">
+                    {isAnnual ? plan.priceAnnual : plan.priceMonthly}
+                  </span>
+                  <span className="text-zinc-500 text-xs font-normal">
+                    per month
+                  </span>
+                </div>
+
+                {/* Features list */}
+                <div className="space-y-4 mb-8">
+                  {plan.features.map((feat, fIdx) => {
+                    const IconComponent = feat.icon;
+                    return (
+                      <div key={fIdx} className="flex items-start gap-3">
+                        <IconComponent className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-zinc-400 font-medium text-[13px] leading-relaxed">
+                          {feat.text}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              <Link href="/signup" className="block">
-                <Button size="lg" className="w-full h-14 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-base font-bold rounded-xl border-0 shadow-[0_0_30px_rgba(124,58,237,0.3)]">
-                  Start free trial — no card needed
-                </Button>
-              </Link>
-              <p className="text-center text-xs text-zinc-600 mt-3">14-day free trial · then $99/month · cancel any time</p>
+              {/* Action Button */}
+              <div className="relative mt-auto z-10 pt-4">
+                <Link
+                  href="/signup"
+                  className={`block w-full text-center py-3.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 ${plan.name === "Pro"
+                      ? "bg-white text-zinc-950 hover:bg-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.12)] font-bold"
+                      : "bg-[#18181b] border border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                    }`}
+                >
+                  {plan.cta}
+                </Link>
+              </div>
+
             </div>
-          </div>
+          ))}
+
+        </div>
+      </div>
+
+      {/* Pricing Callout Footer */}
+      <div className="relative max-w-4xl mx-auto px-6 text-center select-none z-10">
+        <div className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 rounded-full border border-zinc-800 bg-[#09090b]/80 px-6 py-3 text-xs md:text-sm font-medium text-zinc-400 shadow-sm backdrop-blur-md">
+          <span>💳</span>
+          <span>14-day free trial</span>
+          <span className="text-zinc-700">&middot;</span>
+          <span>No credit card required to start</span>
+          <span className="text-zinc-700">&middot;</span>
+          <span>Cancel anytime</span>
+          <span className="text-zinc-700">&middot;</span>
+          <span>No contracts</span>
         </div>
       </div>
     </section>

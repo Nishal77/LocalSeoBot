@@ -1,29 +1,61 @@
+"use client";
+
+import React from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 
 export function FinalCTA() {
   return (
-    <section className="py-28 px-6 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-955/40 via-blue-955/40 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-violet-600/20 to-blue-600/20 rounded-full blur-3xl" />
-      </div>
-      <div className="relative max-w-2xl mx-auto text-center">
-        <div className="text-5xl mb-6">⚡</div>
-        <h2 className="text-4xl md:text-5xl font-black text-white mb-5 leading-tight">
-          Your competitors are showing up<br />
-          <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">on Google. Are you?</span>
-        </h2>
-        <p className="text-zinc-400 text-lg mb-10">
-          Setup takes 5 minutes. Your AI agent starts working immediately.
-        </p>
-        <Link href="/signup">
-          <Button size="lg" className="h-14 px-10 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-base font-bold rounded-xl border-0 shadow-[0_0_40px_rgba(124,58,237,0.5)]">
-            Start free trial — 14 days free <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </Link>
-        <p className="text-zinc-600 text-sm mt-4">No credit card · No agency · No manual work</p>
+    <section className="relative bg-[#09090b] text-white overflow-hidden">
+      {/* Container matching the grid width and side borders of FAQ */}
+      <div className="max-w-6xl mx-auto border-x border-t border-zinc-800 bg-[#09090b] relative w-full overflow-hidden py-24 px-8 text-center flex flex-col justify-center items-center">
+
+        {/* Plus ticks at corners */}
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 text-zinc-600 font-mono text-sm select-none pointer-events-none z-20">+</div>
+        <div className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 text-zinc-600 font-mono text-sm select-none pointer-events-none z-20">+</div>
+        <div className="absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 text-zinc-600 font-mono text-sm select-none pointer-events-none z-20">+</div>
+        <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 text-zinc-600 font-mono text-sm select-none pointer-events-none z-20">+</div>
+
+        {/* Plus ticks at 1/3 and 2/3 coordinates (matching the grid splits) */}
+        <div className="hidden md:block absolute bottom-0 left-[33.333%] -translate-x-1/2 translate-y-1/2 text-zinc-700 font-mono text-xs select-none pointer-events-none z-20">+</div>
+        <div className="hidden md:block absolute top-0 left-[33.333%] -translate-x-1/2 -translate-y-1/2 text-zinc-700 font-mono text-xs select-none pointer-events-none z-20">+</div>
+        <div className="hidden md:block absolute bottom-0 left-[66.666%] -translate-x-1/2 translate-y-1/2 text-zinc-700 font-mono text-xs select-none pointer-events-none z-20">+</div>
+        <div className="hidden md:block absolute top-0 left-[66.666%] -translate-x-1/2 -translate-y-1/2 text-zinc-700 font-mono text-xs select-none pointer-events-none z-20">+</div>
+
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40"
+          style={{ backgroundImage: "url('/images/image2.jpeg')" }}
+        />
+
+        {/* Noise Overlay (fractal noise texture) */}
+        <div
+          className="absolute inset-0 pointer-events-none z-10 opacity-[0.14] mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+          }}
+        />
+
+        {/* Content Block */}
+        <div className="relative z-20 max-w-4xl mx-auto flex flex-col items-center">
+
+          {/* Title */}
+          <h2 className="text-3.5xl sm:text-4.5xl md:text-5xl font-medium tracking-tight text-white mb-6 leading-[1.15] max-w-4xl mx-auto select-none">
+            Your competitors are ranking higher on Google. Today is a good day to fix that.
+          </h2>
+          {/* Subline */}
+          <p className="text-zinc-400 text-sm md:text-[16px] mb-10 max-w-lg mx-auto leading-relaxed select-none">
+            5-minute setup. Your agent starts immediately. First Monday report in your inbox this week.
+          </p>
+
+          {/* Pill CTA button (white background) */}
+          <Link href="/signup">
+            <button className="h-11 px-8 bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-semibold rounded-full hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 shadow-[0_0_30px_rgba(255,255,255,0.12)]">
+              Start for free
+            </button>
+          </Link>
+
+        </div>
+
       </div>
     </section>
   );

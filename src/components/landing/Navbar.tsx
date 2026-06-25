@@ -17,15 +17,14 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-8 text-[14px] font-medium text-zinc-400">
           <a href="#HowItWorks" className="hover:text-white transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-          <a href="#testimonials" className="hover:text-white transition-colors">Reviews</a>
-          <a href="#comparison" className="hover:text-white transition-colors">Comparison</a>
+          <a href="#testimonials" className="hover:text-white transition-colors">Result</a>
         </div>
 
         {/* Right Side: Start for Free button with orange dot */}
         <div className="flex items-center gap-3">
           <Link href="/signup">
             <button className="flex items-center gap-2 border border-zinc-800 hover:border-zinc-700 bg-[#FFFFFF] hover:bg-zinc-800/80 text-black font-medium px-4 py-2.5 rounded-xl text-[13px] transition-all">
-              Start for free
+              Start free - 7 days
             </button>
           </Link>
         </div>
