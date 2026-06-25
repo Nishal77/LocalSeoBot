@@ -46,6 +46,8 @@ export interface RankingData {
   keyword: string;
   rank: number | null;
   category: string;
+  competitorCount: number;
+  searchVolume: number;
 }
 
 export interface SEOIssue {

@@ -98,7 +98,7 @@ async function taskBasedRanking(
       }
     }
 
-    return { keyword: kw, rank: null, category: category ?? "local business" };
+    return { keyword: kw, rank: null, category: category ?? "local business", competitorCount: 0, searchVolume: estimateSearchVolume(category) };
   } catch {
     return null;
   }
@@ -113,7 +113,31 @@ function parseItems(
   const idx = items.findIndex(
     (i) => (i.domain?.includes(domain) ?? false) || (i.url?.includes(domain) ?? false),
   );
-  return { keyword: kw, rank: idx >= 0 ? idx + 1 : null, category: category ?? "local business" };
+  const rank = idx >= 0 ? idx + 1 : null;
+  const competitorCount = rank ? rank - 1 : Math.min(items.length, 8);
+  return {
+    keyword: kw,
+    rank,
+    category: category ?? "local business",
+    competitorCount,
+    searchVolume: estimateSearchVolume(category),
+  };
+}
+
+const SEARCH_VOLUMES: Record<string, number> = {
+  "dentist": 2400, "plumber": 1900, "hvac": 1600, "restaurant": 3200,
+  "hair salon": 1400, "gym": 1800, "lawyer": 1200, "doctor": 2100,
+  "realtor": 2800, "auto repair": 1700, "cleaning service": 1100,
+  "landscaping": 1300, "electrician": 1500, "roofing": 1100,
+};
+
+function estimateSearchVolume(category: string | null): number {
+  if (!category) return 1500;
+  const key = category.toLowerCase();
+  for (const [cat, vol] of Object.entries(SEARCH_VOLUMES)) {
+    if (key.includes(cat)) return vol;
+  }
+  return 1500;
 }
 
 // Austin = 1023191, map common cities

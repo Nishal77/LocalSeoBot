@@ -65,7 +65,7 @@ Output only the 3 sentences, nothing else.`,
 }
 
 function fallbackSummary(analysis: FullAnalysis): string {
-  const { scores, issues, pageSpeed, html, site } = analysis;
+  const { scores, issues, pageSpeed, site } = analysis;
   const topCritical = issues.find((i) => i.severity === "critical");
   const topWarning = issues.find((i) => i.severity === "warning");
   const topIssue = topCritical ?? topWarning;
