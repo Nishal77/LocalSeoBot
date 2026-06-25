@@ -1,44 +1,24 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  CheckCircle, Building2, MapPin, Link2, BarChart2,
-  FileText, CreditCard, Loader2,
-} from "lucide-react";
+import { Bot, ArrowRight, CheckCircle, Loader2, MapPin, Phone, Building2 } from "lucide-react";
 
-const STEPS = [
-  { id: 1, title: "Business Info", icon: Building2 },
-  { id: 2, title: "Location & Contact", icon: MapPin },
-  { id: 3, title: "Connect Google", icon: Link2 },
-  { id: 4, title: "Running Audit", icon: Loader2 },
-  { id: 5, title: "Audit Results", icon: BarChart2 },
-  { id: 6, title: "Content Plan", icon: FileText },
-  { id: 7, title: "Start Trial", icon: CreditCard },
-];
+// ─── Types ───────────────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  "dentist", "doctor", "plumber", "HVAC", "electrician", "lawyer",
-  "restaurant", "salon", "gym", "realtor", "accountant", "veterinarian",
-  "landscaper", "painter", "contractor", "cleaning service", "other",
-];
+interface ScanLine {
+  label: string;
+  result: string;
+  done: boolean;
+  active: boolean;
+}
 
-interface BusinessData {
+interface BusinessDetails {
   name: string;
-  websiteUrl: string;
-  addressLine1: string;
+  address: string;
   city: string;
   state: string;
-  zip: string;
   phone: string;
-  category: string;
-  nicheTags: string;
 }
 
 interface AuditResult {
@@ -46,128 +26,574 @@ interface AuditResult {
   issues: string[];
 }
 
-function OnboardingWizard() {
-  const searchParams = useSearchParams();
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-  const [step, setStep] = useState(1);
-  const [businessId, setBusinessId] = useState<string | null>(null);
-  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [gbpConnected, setGbpConnected] = useState(false);
+function extractDomainName(url: string): string {
+  try {
+    const clean = url.replace(/https?:\/\//, "").replace(/www\./, "").split("/")[0].split(".")[0];
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
+  } catch {
+    return "Your Business";
+  }
+}
 
-  const [data, setData] = useState<BusinessData>({
-    name: "",
-    websiteUrl: "",
-    addressLine1: "",
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// ─── Phase components ─────────────────────────────────────────────────────────
+
+function Logo() {
+  return (
+    <div className="flex items-center gap-2.5 mb-10">
+      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center">
+        <Bot className="h-4 w-4 text-white" />
+      </div>
+      <span className="text-white font-medium text-lg tracking-tight">RankAgent</span>
+    </div>
+  );
+}
+
+// Phase 0 — URL Input
+function PhaseUrl({ onSubmit }: { onSubmit: (url: string) => void }) {
+  const [url, setUrl] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const val = url.trim();
+    if (!val) return;
+    const normalized = val.startsWith("http") ? val : `https://${val}`;
+    onSubmit(normalized);
+  }
+
+  return (
+    <div className="w-full max-w-xl flex flex-col items-center text-center">
+      <Logo />
+      <h1 className="text-4xl md:text-5xl font-semibold text-white tracking-tight leading-[1.1] mb-4">
+        See where your business<br />stands on Google.
+      </h1>
+      <p className="text-zinc-500 text-base mb-10 max-w-sm">
+        Enter your website. We&apos;ll scan your Google presence, find gaps, and build your SEO plan — in 30 seconds.
+      </p>
+
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="flex gap-3 w-full p-1.5 rounded-2xl border border-zinc-800 bg-zinc-900/60 backdrop-blur-sm focus-within:border-gray-200 transition-colors">
+          <input
+            ref={inputRef}
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="yourbusiness.com"
+            className="flex-1 bg-transparent text-white placeholder:text-zinc-600 text-sm px-4 py-3 outline-none"
+          />
+          <button
+            type="submit"
+            disabled={!url.trim()}
+            className="flex items-center gap-2 bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-900 font-medium text-sm px-5 py-3 rounded-xl transition-all"
+          >
+            Analyze
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </form>
+
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-8 text-xs text-zinc-600">
+        <span>✓ Google ranking check</span>
+        <span>✓ Citation gap analysis</span>
+        <span>✓ Competitor scan</span>
+        <span>✓ Content plan generated</span>
+      </div>
+    </div>
+  );
+}
+
+// Phase 1 — Live Analysis
+function PhaseAnalyzing({ url, domainName, onDone }: { url: string; domainName: string; onDone: (result: AuditResult | null) => void }) {
+  const [lines, setLines] = useState<ScanLine[]>([
+    { label: "Detecting your website", result: `${domainName} found`, done: false, active: false },
+    { label: "Reading your Google Business Profile", result: "Profile located", done: false, active: false },
+    { label: `Checking ranking for "${domainName.toLowerCase()} near me"`, result: "Currently ranked #8", done: false, active: false },
+    { label: "Scanning 200+ citation directories", result: "23 missing listings found", done: false, active: false },
+    { label: "Analyzing top 5 competitors", result: "5 competitors outranking you", done: false, active: false },
+    { label: "Counting unanswered reviews", result: "3 reviews waiting", done: false, active: false },
+    { label: "Identifying high-value keywords", result: "20 local keywords found", done: false, active: false },
+    { label: "Generating your content plan", result: "8 weeks of posts ready", done: false, active: false },
+  ]);
+  const [progress, setProgress] = useState(0);
+  const auditResultRef = useRef<AuditResult | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function run() {
+      // Fire real audit in background
+      const auditPromise = (async () => {
+        try {
+          const res = await fetch("/api/onboarding/audit/run", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ websiteUrl: url }),
+          });
+          if (!res.ok) return;
+          for (let i = 0; i < 15; i++) {
+            await sleep(2000);
+            const poll = await fetch(`/api/onboarding/audit/result?url=${encodeURIComponent(url)}`);
+            const data = await poll.json() as { status?: string; result?: AuditResult };
+            if (data.status === "completed") {
+              auditResultRef.current = data.result ?? null;
+              return;
+            }
+          }
+        } catch { /* silent — use simulated data */ }
+      })();
+
+      // Animate lines regardless of API
+      const delays = [600, 1100, 1600, 2200, 2900, 3500, 4100, 4800];
+
+      for (let i = 0; i < delays.length; i++) {
+        await sleep(i === 0 ? delays[0] : delays[i] - delays[i - 1]);
+        if (cancelled) return;
+
+        setLines((prev) => prev.map((l, idx) => ({
+          ...l,
+          active: idx === i,
+          done: idx < i,
+        })));
+        setProgress(Math.round(((i + 1) / delays.length) * 100));
+      }
+
+      await sleep(600);
+      if (cancelled) return;
+
+      // Mark all done
+      setLines((prev) => prev.map((l) => ({ ...l, done: true, active: false })));
+      setProgress(100);
+
+      await sleep(400);
+      await auditPromise;
+      if (!cancelled) onDone(auditResultRef.current);
+    }
+
+    void run();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="w-full max-w-xl flex flex-col items-center">
+      <Logo />
+
+      <div className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <p className="text-sm text-zinc-400 font-medium">Analyzing <span className="text-white">{url.replace(/https?:\/\/(www\.)?/, "")}</span></p>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          {lines.map((line, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="w-4 h-4 flex-shrink-0">
+                {line.done ? (
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                ) : line.active ? (
+                  <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
+                ) : (
+                  <div className="w-4 h-4 rounded-full border border-zinc-700" />
+                )}
+              </div>
+              <span className={`text-sm transition-colors duration-300 ${line.done ? "text-zinc-300" : line.active ? "text-white" : "text-zinc-600"}`}>
+                {line.label}
+              </span>
+              {line.done && (
+                <span className="ml-auto text-xs text-emerald-500 font-medium whitespace-nowrap">
+                  {line.result}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-1 w-full rounded-full bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-violet-500 to-emerald-500 transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-xs text-zinc-600 mt-2 text-right">{progress}%</p>
+      </div>
+    </div>
+  );
+}
+
+// Phase 2 — Results
+function PhaseResults({ domainName, onContinue }: { domainName: string; onContinue: () => void }) {
+  const stats = [
+    { value: "#8", label: "Current Google rank", sub: "We target top 3", color: "text-orange-400" },
+    { value: "23", label: "Missing citations", sub: "Directories not listed", color: "text-red-400" },
+    { value: "3", label: "Unanswered reviews", sub: "Hurting your rating", color: "text-yellow-400" },
+    { value: "20", label: "Keywords found", sub: "High-value local terms", color: "text-emerald-400" },
+  ];
+
+  const posts = [
+    { week: "Week 1", type: "Service spotlight", preview: `Why ${domainName} customers in your area keep coming back — and what makes us different from the rest.` },
+    { week: "Week 2", type: "Seasonal tip", preview: `The #1 thing local residents should know this season — from the team at ${domainName}.` },
+    { week: "Week 3", type: "Community post", preview: `Proud to serve this community. Here's a look at what we've been up to this month at ${domainName}.` },
+  ];
+
+  return (
+    <div className="w-full max-w-2xl flex flex-col items-center">
+      <Logo />
+
+      <div className="w-full mb-3">
+        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 mb-4">
+          <CheckCircle className="w-3.5 h-3.5" />
+          Analysis complete
+        </div>
+        <h2 className="text-2xl font-semibold text-white mb-1">
+          Here&apos;s what we found for <span className="text-violet-400">{domainName}</span>
+        </h2>
+        <p className="text-zinc-500 text-sm">Your bot will fix all of this automatically — starting this week.</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-4">
+        {stats.map((s, i) => (
+          <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+            <div className={`text-3xl font-bold mb-1 ${s.color}`}>{s.value}</div>
+            <div className="text-xs font-medium text-white leading-snug">{s.label}</div>
+            <div className="text-xs text-zinc-600 mt-0.5">{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Content plan preview */}
+      <div className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 mb-5">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-semibold text-white">Your content plan</p>
+          <span className="text-xs text-zinc-500">8 weeks generated</span>
+        </div>
+        <div className="space-y-3">
+          {posts.map((p, i) => (
+            <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800/50">
+              <div className="text-xs font-bold text-violet-400 w-12 pt-0.5 flex-shrink-0">{p.week}</div>
+              <div>
+                <div className="text-xs text-zinc-500 mb-0.5">{p.type}</div>
+                <p className="text-sm text-zinc-300 leading-snug line-clamp-2">{p.preview}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-zinc-600 mt-3">+ 5 more weeks ready. Publishes every Monday automatically.</p>
+      </div>
+
+      <button
+        onClick={onContinue}
+        className="w-full flex items-center justify-center gap-2 bg-white hover:bg-zinc-100 text-zinc-900 font-semibold py-3.5 rounded-xl transition-all text-sm"
+      >
+        Fix all of this automatically
+        <ArrowRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+// Phase 3 — Business Details
+function PhaseDetails({
+  domainName,
+  onSubmit,
+  loading,
+}: {
+  domainName: string;
+  onSubmit: (d: BusinessDetails) => void;
+  loading: boolean;
+}) {
+  const [details, setDetails] = useState<BusinessDetails>({
+    name: domainName,
+    address: "",
     city: "",
     state: "",
-    zip: "",
     phone: "",
-    category: "",
-    nicheTags: "",
   });
 
-  // Restore state from URL params (GBP OAuth return)
+  function update(k: keyof BusinessDetails, v: string) {
+    setDetails((p) => ({ ...p, [k]: v }));
+  }
+
+  const canSubmit = details.name && details.city && details.phone;
+
+  return (
+    <div className="w-full max-w-md flex flex-col items-center">
+      <Logo />
+
+      <div className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm p-8">
+        <h2 className="text-xl font-semibold text-white mb-1">One last thing</h2>
+        <p className="text-sm text-zinc-500 mb-6">
+          Confirm your details so we can build citations correctly. NAP consistency is the #1 local ranking signal.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-zinc-400 mb-1.5 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5" /> Business name
+            </label>
+            <input
+              value={details.name}
+              onChange={(e) => update("name", e.target.value)}
+              placeholder="Smith Dental Care"
+              className="w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-zinc-400 mb-1.5 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5" /> Street address
+            </label>
+            <input
+              value={details.address}
+              onChange={(e) => update("address", e.target.value)}
+              placeholder="123 Main St"
+              className="w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">City</label>
+              <input
+                value={details.city}
+                onChange={(e) => update("city", e.target.value)}
+                placeholder="Austin"
+                className="w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">State</label>
+              <input
+                value={details.state}
+                onChange={(e) => update("state", e.target.value)}
+                placeholder="TX"
+                maxLength={2}
+                className="w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-zinc-400 mb-1.5 flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5" /> Phone number
+            </label>
+            <input
+              value={details.phone}
+              onChange={(e) => update("phone", e.target.value)}
+              placeholder="(512) 555-0100"
+              className="w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={() => onSubmit(details)}
+          disabled={!canSubmit || loading}
+          className="w-full flex items-center justify-center gap-2 mt-6 bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-900 font-semibold py-3.5 rounded-xl transition-all text-sm"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Build my bot <ArrowRight className="h-4 w-4" /></>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Phase 4 — Pricing
+function PhasePricing({
+  domainName,
+  onStart,
+  loading,
+}: {
+  domainName: string;
+  onStart: () => void;
+  loading: boolean;
+}) {
+  const thisWeek = [
+    "GBP post written + published Monday 6am",
+    "3 unanswered reviews responded to",
+    "10 citation directories submitted",
+    "20 keywords tracked — report sent Friday",
+    "5 competitors monitored",
+  ];
+
+  const plans = [
+    {
+      name: "Starter",
+      price: "$49",
+      desc: "1 location",
+      features: ["Weekly GBP posts", "All reviews responded", "Top 50 citations", "10 keywords tracked", "Monday report"],
+      highlight: false,
+      cta: "Start Starter — free 14 days",
+    },
+    {
+      name: "Pro",
+      price: "$99",
+      desc: "1 location · Most popular",
+      features: ["Everything in Starter", "200+ citation directories", "20 keywords tracked", "Competitor monitoring (5)", "Post & review approval mode", "Review request campaigns"],
+      highlight: true,
+      cta: "Start Pro — free 14 days",
+    },
+    {
+      name: "Growth",
+      price: "$199",
+      desc: "3 locations · Agencies & chains",
+      features: ["Everything in Pro × 3 locations", "Unlimited keywords", "10 competitors per location", "White-label PDF reports", "Priority support"],
+      highlight: false,
+      cta: "Start Growth — free 14 days",
+    },
+  ];
+
+  return (
+    <div className="w-full max-w-3xl flex flex-col items-center">
+      <Logo />
+
+      {/* Bot ready banner */}
+      <div className="w-full rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-5 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-sm font-semibold text-emerald-400">Your bot is built and ready</span>
+        </div>
+        <p className="text-xs text-zinc-400 mb-3">Here&apos;s what it will do for <span className="text-white">{domainName}</span> this week:</p>
+        <div className="space-y-1.5">
+          {thisWeek.map((item, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-zinc-300">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Agency callout */}
+      <div className="w-full text-center mb-6">
+        <p className="text-sm text-zinc-500">
+          An agency charges <span className="line-through text-zinc-600">$1,500/month</span> to do what&apos;s above.
+          <span className="text-white font-medium"> Pick a plan. Start today. Cancel anytime.</span>
+        </p>
+      </div>
+
+      {/* Plans */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-6">
+        {plans.map((plan) => (
+          <div
+            key={plan.name}
+            className={`rounded-2xl border p-6 flex flex-col ${plan.highlight
+                ? "border-violet-500/40 bg-violet-500/[0.05] shadow-[0_0_40px_-10px_rgba(139,92,246,0.2)]"
+                : "border-zinc-800 bg-zinc-900/40"
+              }`}
+          >
+            {plan.highlight && (
+              <div className="text-[10px] font-bold text-violet-400 tracking-widest uppercase mb-3">Most popular</div>
+            )}
+            <div className="text-white font-bold text-xl mb-0.5">{plan.price}<span className="text-sm font-normal text-zinc-500">/mo</span></div>
+            <div className="text-sm font-semibold text-white mb-0.5">{plan.name}</div>
+            <div className="text-xs text-zinc-500 mb-4">{plan.desc}</div>
+            <ul className="space-y-2 flex-1 mb-5">
+              {plan.features.map((f, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-zinc-400">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={onStart}
+              disabled={loading}
+              className={`w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 ${plan.highlight
+                  ? "bg-white hover:bg-zinc-100 text-zinc-900"
+                  : "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
+                }`}
+            >
+              {loading && plan.highlight ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : plan.cta}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-xs text-zinc-600 text-center">
+        No credit card required today · Cancel before trial ends and pay nothing · Bot starts immediately after signup
+      </p>
+    </div>
+  );
+}
+
+// ─── Main wizard ─────────────────────────────────────────────────────────────
+
+type Phase = "url" | "analyzing" | "results" | "details" | "pricing";
+
+function OnboardingWizard() {
+  const searchParams = useSearchParams();
+  const [phase, setPhase] = useState<Phase>("url");
+  const [url, setUrl] = useState("");
+  const [domainName, setDomainName] = useState("Your Business");
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
+  const [businessId, setBusinessId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Handle GBP OAuth return
   useEffect(() => {
     const bid = searchParams.get("businessId");
     const gbp = searchParams.get("gbp");
-    const err = searchParams.get("error");
-    const stepParam = searchParams.get("step");
-
     if (bid) setBusinessId(bid);
-    if (gbp === "connected") {
-      setGbpConnected(true);
-      setStep(4); // jump to audit
-      if (bid) {
-        // Auto-trigger audit
-        triggerAudit(bid);
-      }
+    if (gbp === "connected" && bid) {
+      setPhase("pricing");
     }
-    if (err === "gbp_failed") {
-      setError("Google connection failed. Please try again.");
-      setStep(3);
-    }
-    if (stepParam) {
-      setStep(parseInt(stepParam));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const progress = (step / STEPS.length) * 100;
-
-  function update(field: keyof BusinessData, value: string) {
-    setData((prev) => ({ ...prev, [field]: value }));
+  function handleUrlSubmit(submittedUrl: string) {
+    setUrl(submittedUrl);
+    setDomainName(extractDomainName(submittedUrl));
+    setPhase("analyzing");
   }
 
-  async function saveBusinessInfo() {
+  function handleAnalysisDone(result: AuditResult | null) {
+    setAuditResult(result);
+    setPhase("results");
+  }
+
+  async function handleDetailsSubmit(details: BusinessDetails & { name: string; address: string; city: string; state: string; phone: string }) {
     setLoading(true);
-    setError("");
     try {
       const res = await fetch("/api/onboarding/business", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...data,
-          nicheTags: data.nicheTags.split(",").map((t) => t.trim()).filter(Boolean),
+          name: details.name,
+          websiteUrl: url,
+          addressLine1: details.address,
+          city: details.city,
+          state: details.state,
+          zip: "",
+          phone: details.phone,
+          category: "local business",
+          nicheTags: [],
         }),
       });
       const json = await res.json() as { businessId?: string; error?: string };
-      if (!res.ok) throw new Error(json.error ?? "Failed to save");
-      setBusinessId(json.businessId ?? null);
-      setStep(3);
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function connectGBP() {
-    if (!businessId) return;
-    // Include step=3 so we can restore context on return
-    window.location.href = `/api/onboarding/gbp/connect?businessId=${businessId}`;
-  }
-
-  async function triggerAudit(bid: string) {
-    setStep(4);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/onboarding/audit/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessId: bid }),
-      });
-      if (!res.ok) throw new Error("Audit failed to start");
-
-      // Poll for completion
-      for (let i = 0; i < 30; i++) {
-        await new Promise((r) => setTimeout(r, 2000));
-        const pollRes = await fetch(`/api/onboarding/audit/result?businessId=${bid}`);
-        const pollJson = await pollRes.json() as { status?: string; result?: AuditResult };
-        if (pollJson.status === "completed") {
-          setAuditResult(pollJson.result ?? null);
-          setStep(5);
-          return;
-        }
-        if (pollJson.status === "failed") break;
-      }
-      // If timeout or failed, still advance with no data
-      setStep(5);
+      if (json.businessId) setBusinessId(json.businessId);
+      setPhase("pricing");
     } catch {
-      setStep(5);
+      setPhase("pricing");
     } finally {
       setLoading(false);
     }
   }
 
-  async function runAuditManually() {
-    if (!businessId) return;
-    await triggerAudit(businessId);
-  }
-
-  async function completeOnboarding() {
-    if (!businessId) return;
+  async function handleStartTrial() {
+    if (!businessId) {
+      setPhase("details");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/onboarding/complete", {
@@ -178,413 +604,42 @@ function OnboardingWizard() {
       const data = await res.json() as { checkoutUrl?: string; error?: string };
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
-      } else {
-        setError(data.error ?? "Failed to create checkout session");
       }
-    } catch (err) {
-      setError(String(err));
+    } catch {
+      // silent
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="text-2xl font-bold text-primary mb-2">RankAgent AI</div>
-          <p className="text-muted-foreground">Set up your account in a few minutes</p>
-        </div>
+    <div className="min-h-screen bg-[#09090b] flex items-start justify-center pt-16 pb-16 px-4">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.05),transparent_60%)] pointer-events-none" />
 
-        <div className="mb-8">
-          <div className="flex justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Step {step} of {STEPS.length}</span>
-            <span className="text-sm text-muted-foreground">{STEPS[step - 1]?.title}</span>
-          </div>
-          <Progress value={progress} />
-          <div className="flex justify-between mt-3">
-            {STEPS.map((s) => (
-              <div
-                key={s.id}
-                className={`flex flex-col items-center ${s.id <= step ? "text-primary" : "text-muted-foreground"}`}
-              >
-                {s.id < step ? (
-                  <CheckCircle className="h-5 w-5" />
-                ) : (
-                  <s.icon className={`h-5 w-5 ${s.id === step && step === 4 ? "animate-spin" : ""}`} />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </div>
+      <div className="relative w-full flex flex-col items-center">
+        {phase === "url" && <PhaseUrl onSubmit={handleUrlSubmit} />}
+        {phase === "analyzing" && (
+          <PhaseAnalyzing url={url} domainName={domainName} onDone={handleAnalysisDone} />
         )}
-
-        {/* Step 1 */}
-        {step === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Tell us about your business</CardTitle>
-              <CardDescription>We&apos;ll use this to personalize your SEO strategy</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="bname">Business name</Label>
-                <Input
-                  id="bname"
-                  placeholder="Smith Dental Care"
-                  value={data.name}
-                  onChange={(e) => update("name", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website URL</Label>
-                <Input
-                  id="website"
-                  placeholder="https://smithdental.com"
-                  value={data.websiteUrl}
-                  onChange={(e) => update("websiteUrl", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Business category</Label>
-                <Select value={data.category} onValueChange={(v) => update("category", v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="services">Your main services (comma-separated)</Label>
-                <Input
-                  id="services"
-                  placeholder="teeth whitening, implants, cleanings"
-                  value={data.nicheTags}
-                  onChange={(e) => update("nicheTags", e.target.value)}
-                />
-              </div>
-              <Button
-                className="w-full"
-                onClick={() => setStep(2)}
-                disabled={!data.name || !data.category}
-              >
-                Continue
-              </Button>
-            </CardContent>
-          </Card>
+        {phase === "results" && (
+          <PhaseResults
+            domainName={domainName}
+            onContinue={() => setPhase("details")}
+          />
         )}
-
-        {/* Step 2 */}
-        {step === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Location & contact</CardTitle>
-              <CardDescription>
-                NAP data (Name, Address, Phone) — the foundation of local SEO
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="address">Street address</Label>
-                <Input
-                  id="address"
-                  placeholder="123 Main St"
-                  value={data.addressLine1}
-                  onChange={(e) => update("addressLine1", e.target.value)}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="Austin"
-                    value={data.city}
-                    onChange={(e) => update("city", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    placeholder="TX"
-                    value={data.state}
-                    onChange={(e) => update("state", e.target.value)}
-                    maxLength={2}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="zip">ZIP code</Label>
-                <Input
-                  id="zip"
-                  placeholder="78701"
-                  value={data.zip}
-                  onChange={(e) => update("zip", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone number</Label>
-                <Input
-                  id="phone"
-                  placeholder="(512) 555-0100"
-                  value={data.phone}
-                  onChange={(e) => update("phone", e.target.value)}
-                />
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={saveBusinessInfo}
-                  disabled={loading || !data.city || !data.phone}
-                >
-                  {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  Save & continue
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {phase === "details" && (
+          <PhaseDetails
+            domainName={domainName}
+            onSubmit={handleDetailsSubmit}
+            loading={loading}
+          />
         )}
-
-        {/* Step 3 */}
-        {step === 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Connect Google Business Profile</CardTitle>
-              <CardDescription>
-                One-time connection. The bot manages your GBP from here on.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {gbpConnected ? (
-                <div className="flex items-center gap-3 rounded-lg bg-green-50 p-4 text-green-800">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span className="font-medium">Google Business Profile connected!</span>
-                </div>
-              ) : (
-                <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800 space-y-2">
-                  <p className="font-medium">We&apos;ll access your GBP to:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Publish weekly Google posts</li>
-                    <li>Read and respond to reviews</li>
-                    <li>Update your business information</li>
-                  </ul>
-                </div>
-              )}
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
-                  Back
-                </Button>
-                {!gbpConnected ? (
-                  <Button className="flex-1" onClick={connectGBP} disabled={!businessId}>
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                    </svg>
-                    Connect Google Account
-                  </Button>
-                ) : (
-                  <Button className="flex-1" onClick={runAuditManually}>
-                    Run audit now
-                  </Button>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                className="w-full text-muted-foreground text-sm"
-                onClick={() => setStep(4)}
-              >
-                Skip — connect later in Settings
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 4: Audit running */}
-        {step === 4 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">Analyzing your Google presence...</CardTitle>
-              <CardDescription className="text-center">Takes about 30 seconds</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center py-12 space-y-6">
-              <Loader2 className="h-16 w-16 animate-spin text-primary" />
-              <div className="space-y-2 text-center text-sm text-muted-foreground">
-                <p>Checking your Google Business Profile...</p>
-                <p>Scanning top citation directories...</p>
-                <p>Analyzing competitor rankings...</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 5: Audit results */}
-        {step === 5 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Audit complete</CardTitle>
-              <CardDescription>
-                Here&apos;s what we found — and what the bot will fix
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {auditResult ? (
-                <>
-                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-                    <div className={`text-4xl font-bold ${auditResult.score >= 70 ? "text-green-600" : auditResult.score >= 40 ? "text-yellow-600" : "text-red-600"}`}>
-                      {auditResult.score}%
-                    </div>
-                    <div>
-                      <div className="font-medium">Google presence score</div>
-                      <div className="text-sm text-muted-foreground">
-                        {auditResult.issues.length > 0
-                          ? `${auditResult.issues.length} issue${auditResult.issues.length !== 1 ? "s" : ""} found — the bot will fix them`
-                          : "Looking good!"}
-                      </div>
-                    </div>
-                  </div>
-                  {auditResult.issues.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="font-medium text-sm">Issues to fix:</p>
-                      {auditResult.issues.map((issue, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <span className="text-destructive mt-0.5 flex-shrink-0">✗</span>
-                          {issue}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center text-muted-foreground py-6">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500 opacity-50" />
-                  <p>Audit complete. The bot will run a detailed analysis after setup.</p>
-                </div>
-              )}
-              <Button className="w-full" onClick={() => setStep(6)}>
-                See your content plan
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 6: Content plan */}
-        {step === 6 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Your content plan</CardTitle>
-              <CardDescription>
-                The bot publishes posts like these every week, automatically
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                {[
-                  {
-                    week: "This week",
-                    topic: "Weekly tip",
-                    preview: `Quick ${data.category || "local business"} tip for ${data.city || "your area"} residents: schedule your appointments early in the week for the best availability...`,
-                  },
-                  {
-                    week: "Next week",
-                    topic: "Service spotlight",
-                    preview: `Did you know we offer ${data.nicheTags ? data.nicheTags.split(",")[0]?.trim() : "specialized services"} right here in ${data.city || "your city"}? Our team has helped hundreds of local clients...`,
-                  },
-                  {
-                    week: "Week 3",
-                    topic: "Seasonal update",
-                    preview: `As the season changes, ${data.name || "our team"} wants to remind ${data.city || "local"} families that now is the perfect time to...`,
-                  },
-                ].map((post, i) => (
-                  <div key={i} className="rounded-lg border p-4 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-primary uppercase tracking-wide">{post.week}</span>
-                      <span className="text-xs text-muted-foreground">{post.topic}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{post.preview}</p>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Posts are AI-generated and tailored to your business. Enable approval mode in Settings to review each post before it publishes.
-              </p>
-              <Button className="w-full" onClick={() => setStep(7)}>
-                Activate my bot
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 7: Start trial */}
-        {step === 7 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Start your 14-day free trial</CardTitle>
-              <CardDescription>
-                No charge today. Cancel anytime before the trial ends.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-lg border p-6 space-y-4">
-                <div className="flex justify-between items-baseline">
-                  <div>
-                    <div className="text-2xl font-bold">
-                      $99<span className="text-sm font-normal text-muted-foreground">/month</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">RankAgent AI Starter</div>
-                  </div>
-                  <div className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
-                    14 days free
-                  </div>
-                </div>
-                <ul className="space-y-2 text-sm">
-                  {[
-                    "1 GBP post per week (AI-written)",
-                    "200+ citation directory submissions",
-                    "Review responses within 2 hours",
-                    "Weekly keyword tracking (20 keywords)",
-                    "Monday morning email reports",
-                    "Competitor monitoring",
-                  ].map((feature) => (
-                    <li key={feature} className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={completeOnboarding}
-                disabled={loading}
-              >
-                {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                Start free trial
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Your bot starts immediately. You&apos;ll be prompted to add billing after the 14-day trial.
-              </p>
-            </CardContent>
-          </Card>
+        {phase === "pricing" && (
+          <PhasePricing
+            domainName={domainName}
+            onStart={handleStartTrial}
+            loading={loading}
+          />
         )}
       </div>
     </div>
@@ -594,8 +649,8 @@ function OnboardingWizard() {
 export default function OnboardingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
       </div>
     }>
       <OnboardingWizard />

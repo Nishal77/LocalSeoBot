@@ -22,9 +22,9 @@ export function Navbar() {
 
         {/* Right Side: Start for Free button with orange dot */}
         <div className="flex items-center gap-3">
-          <Link href="/signup">
+          <Link href="/login">
             <button className="flex items-center gap-2 border border-zinc-800 hover:border-zinc-700 bg-[#FFFFFF] hover:bg-white/90 text-black font-medium px-4 py-2.5 rounded-xl text-[13px] transition-all">
-              Start free - 7 days
+              Start free - 14 days
             </button>
           </Link>
         </div>
