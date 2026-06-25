@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CrispChat } from "@/components/crisp-chat";
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "RankAgent — AI Local SEO Agent",
@@ -15,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark bg-[#09090b]">
       <body className="antialiased bg-[#09090b] text-white overscroll-none">
-        {children}
+        <Providers>{children}</Providers>
         <CrispChat />
       </body>
     </html>
