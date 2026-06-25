@@ -14,8 +14,8 @@ export function AutopilotCallout() {
 
       <div className="max-w-4xl mx-auto text-center px-6 flex flex-col items-center">
         {/* Large H2 */}
-        <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1] mb-6">
-          What if all three ran automatically — forever?
+        <h2 className="ext-3xl md:text-5xl font-semibold tracking-tight text-white leading-[1.1] mb-6">
+          What if all three ran automatically, forever?
         </h2>
 
         {/* Muted subline */}

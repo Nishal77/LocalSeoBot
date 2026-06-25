@@ -9,8 +9,9 @@ export function Problem() {
       {/* Centered Heading Container */}
       <div className="max-w-3xl mx-auto text-center px-6 mb-16 flex flex-col items-center">
         {/* Capsule Badge */}
-        <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-medium text-zinc-300 mb-6 tracking-wide backdrop-blur-md select-none">
-        The real problem
+        <div className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-4 py-1 text-sm font-medium text-zinc-300 mb-6 tracking-tight backdrop-blur-md select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2 flex-shrink-0" />
+          The real problem
         </div>
 
         {/* Section Headline */}

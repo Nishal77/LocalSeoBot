@@ -49,88 +49,82 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Used By Section */}
-      <div className="w-full border-t border-b border-zinc-800 mt-8 mb-16 py-6 bg-transparent">
-        <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-zinc-400 text-sm font-medium tracking-wide">
-          <span className="text-zinc-500 uppercase tracking-widest text-[10px] font-bold">Used By</span>
-          <span className="text-zinc-800 select-none hidden sm:inline">|</span>
-          <div className="flex items-center gap-1.5 text-white">
-            <span>🦷</span>
-            <span>Dentists</span>
-          </div>
-          <span className="text-zinc-800 select-none">&middot;</span>
-          <div className="flex items-center gap-1.5 text-white">
-            <span>🔧</span>
-            <span>Plumbers</span>
-          </div>
-          <span className="text-zinc-800 select-none">&middot;</span>
-          <div className="flex items-center gap-1.5 text-white">
-            <span>❄️</span>
-            <span>HVAC</span>
-          </div>
-          <span className="text-zinc-800 select-none">&middot;</span>
-          <div className="flex items-center gap-1.5 text-white">
-            <span>🍕</span>
-            <span>Restaurants</span>
-          </div>
-          <span className="text-zinc-800 select-none">&middot;</span>
-          <div className="flex items-center gap-1.5 text-white">
-            <span>💇</span>
-            <span>Salons</span>
-          </div>
-          <span className="text-zinc-800 select-none hidden sm:inline">|</span>
-          <span className="text-zinc-400 font-semibold">across the US</span>
-        </div>
-      </div>
 
       {/* Works for every local business Section */}
-      <div className="relative w-full mt-12">
+      <div className="relative w-full mt-12 border-t border-b border-zinc-800 mt-8 mb-16 py-6 bg-transparent">
         <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-left px-6 text-white mb-8">
-          Works for every local business
+         Used By
         </h2>
 
-        <div className="w-full border-t border-b border-zinc-800">
-          <div className="w-full grid grid-cols-2 md:grid-cols-5 text-center text-sm font-medium text-zinc-300">
-            <div className="py-6 px-4 border-b border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🦷</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Dentists</span>
-            </div>
-            <div className="py-6 px-4 border-l border-b border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🔧</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Plumbers</span>
-            </div>
-            <div className="py-6 px-4 border-b md:border-l border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">❄️</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">HVAC</span>
-            </div>
-            <div className="py-6 px-4 border-l border-b border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🍕</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Restaurants</span>
-            </div>
-            <div className="py-6 px-4 border-b md:border-l border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">💇</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Salons</span>
-            </div>
-            <div className="py-6 px-4 border-l border-b md:border-l-0 md:border-b-0 border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🏋️</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Gyms</span>
-            </div>
-            <div className="py-6 px-4 border-b md:border-l md:border-b-0 border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">⚖️</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Law Firms</span>
-            </div>
-            <div className="py-6 px-4 border-l border-b md:border-b-0 border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🏠</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Realtors</span>
-            </div>
-            <div className="py-6 px-4 md:border-l border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🚗</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Auto Repair</span>
-            </div>
-            <div className="py-6 px-4 border-l border-zinc-800 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.02] transition-colors duration-200">
-              <span className="text-xl">🧹</span>
-              <span className="font-medium tracking-wide text-zinc-300 group-hover:text-white transition-colors duration-200">Cleaners</span>
-            </div>
+        <div className="w-full">
+          <div className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 text-center text-sm font-medium text-zinc-300">
+            {[
+              { emoji: "🦷", name: "Dentists" },
+              { emoji: "🔧", name: "Plumbers" },
+              { emoji: "❄️", name: "HVAC" },
+              { emoji: "🍕", name: "Restaurants" },
+              { emoji: "💇", name: "Salons" },
+              { emoji: "🏋️", name: "Gyms" },
+              { emoji: "⚖️", name: "Law Firms" },
+              { emoji: "🏠", name: "Realtors" },
+              { emoji: "🚗", name: "Auto Repair" },
+              { emoji: "🧹", name: "Cleaners" },
+              { emoji: "🔑", name: "Locksmiths" },
+              { emoji: "", name: "Across world" }
+            ].map((biz, idx) => {
+              // Dynamically build clean grid lines without outer borders for all screens
+              let borderClasses = "border-zinc-800/80 ";
+              
+              // Mobile (2 columns)
+              if (idx < 10) {
+                borderClasses += "border-b ";
+              }
+              if (idx % 2 === 0) {
+                borderClasses += "border-r ";
+              }
+              
+              // Tablet (3 columns)
+              if (idx < 9) {
+                borderClasses += "md:border-b ";
+              } else {
+                borderClasses += "md:border-b-0 ";
+              }
+              if ((idx + 1) % 3 !== 0) {
+                borderClasses += "md:border-r ";
+              } else {
+                borderClasses += "md:border-r-0 ";
+              }
+              
+              // Desktop (6 columns)
+              if (idx < 6) {
+                borderClasses += "lg:border-b ";
+              } else {
+                borderClasses += "lg:border-b-0 ";
+              }
+              if ((idx + 1) % 6 !== 0) {
+                borderClasses += "lg:border-r ";
+              } else {
+                borderClasses += "lg:border-r-0 ";
+              }
+
+              return (
+                <div 
+                  key={biz.name}
+                  className={`py-6 px-4 flex flex-row items-center justify-center gap-2.5 group cursor-default hover:bg-white/[0.025] transition-colors duration-200 ${borderClasses}`}
+                >
+                  {biz.emoji && <span className="text-xl select-none">{biz.emoji}</span>}
+                  {biz.name === "Across world" ? (
+                    <span className="font-medium tracking-wide text-white/60">
+                      {biz.name}
+                    </span>
+                  ) : (
+                    <span className="font-medium tracking-wide text-zinc-350 group-hover:text-white transition-colors duration-200">
+                      {biz.name}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

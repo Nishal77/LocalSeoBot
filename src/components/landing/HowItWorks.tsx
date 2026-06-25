@@ -1,14 +1,32 @@
 export function HowItWorks() {
   return (
-    <section id="HowItWorks" className="py-24 px-6 bg-[#09090b] border-b border-zinc-800/80">
+    <section id="HowItWorks" className="py-24 px-6 bg-[#09090b]">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
-          <div className="inline-block text-xs font-bold px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 mb-4 uppercase tracking-widest">3 steps</div>
+          <div className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-4 py-1 text-sm font-medium text-zinc-300 mb-6 tracking-tight backdrop-blur-md select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2 flex-shrink-0" />
+            3 steps
+          </div>
+
           <h2 className="text-4xl font-semibold text-white mb-3 tracking-tight">Setup in 5 minutes. Runs forever.</h2>
           <p className="text-zinc-400 text-sm">From signup to AI agent running in under 5 minutes.</p>
         </div>
 
         <div className="relative">
+          {/* Handdrawn Blueprint Wavy Arrows (Desktop) */}
+          <div className="hidden md:block absolute top-[48px] left-[26%] w-[15%] h-8 text-blue-500/30 pointer-events-none z-20">
+            <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+              <path d="M5 12C30 2 60 22 90 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              <path d="M82 6C85 8 88 9 91 10C87 11 84 13 81 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            </svg>
+          </div>
+          <div className="hidden md:block absolute top-[48px] left-[59%] w-[15%] h-8 text-blue-500/30 pointer-events-none z-20">
+            <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+              <path d="M5 12C30 2 60 22 90 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              <path d="M82 6C85 8 88 9 91 10C87 11 84 13 81 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            </svg>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
             {[
               {

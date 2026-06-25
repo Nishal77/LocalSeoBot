@@ -112,8 +112,18 @@ export function Pricing() {
             >
               {plan.name === "Pro" && (
                 <>
-                  {/* Blue radial glow at the bottom of Pro (Popular) column */}
-                  <div className="absolute inset-x-0 bottom-0 h-[70%] bg-[radial-gradient(circle_at_bottom,rgba(59,130,246,0.12),transparent_75%)] pointer-events-none z-0" />
+                  {/* Background Image with low opacity */}
+                  <div
+                    className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-[0.25]"
+                    style={{ backgroundImage: "url('/images/image3.jpeg')" }}
+                  />
+                  {/* Noise Overlay (fractal noise texture) */}
+                  <div
+                    className="absolute inset-0 pointer-events-none z-0 opacity-[0.14] mix-blend-overlay"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+                    }}
+                  />
                 </>
               )}
 
@@ -121,9 +131,9 @@ export function Pricing() {
                 {/* Plan Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-white leading-none">{plan.name}</h3>
+                    <h3 className="text-xl font-semibold text-white leading-none">{plan.name}</h3>
                     {plan.name === "Pro" && (
-                      <span className="bg-white text-zinc-950 text-[9px] font-black px-1.5 py-0.5 rounded tracking-widest uppercase select-none">
+                      <span className="bg-white text-zinc-950 text-[9px] font-medium px-1.5 py-0.5 rounded tracking-tight select-none">
                         POPULAR
                       </span>
                     )}
@@ -140,19 +150,19 @@ export function Pricing() {
                             }`}
                         />
                       </button>
-                      <span className="text-[8px] font-bold tracking-wider text-zinc-500">ANNUAL</span>
+                      <span className="text-[10px] font-medium tracking-wider text-white/40">ANNUAL</span>
                     </div>
                   )}
                 </div>
 
-                <p className="text-zinc-500 text-xs mt-2 font-medium">{plan.desc}</p>
+                <p className="text-white/60 text-xs mt-2 font-medium">{plan.desc}</p>
 
                 {/* Price block */}
                 <div className="flex items-baseline gap-1.5 mt-8 mb-10">
                   <span className="text-5xl font-semibold tracking-tight text-white leading-none">
                     {isAnnual ? plan.priceAnnual : plan.priceMonthly}
                   </span>
-                  <span className="text-zinc-500 text-xs font-normal">
+                  <span className="text-white/70 text-xs font-normal">
                     per month
                   </span>
                 </div>
@@ -163,8 +173,8 @@ export function Pricing() {
                     const IconComponent = feat.icon;
                     return (
                       <div key={fIdx} className="flex items-start gap-3">
-                        <IconComponent className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-zinc-400 font-medium text-[13px] leading-relaxed">
+                        <IconComponent className="w-4 h-4 text-white/60 mt-0.5 flex-shrink-0" />
+                        <span className="text-white/60 font-medium text-[13px] leading-relaxed tracking-tight">
                           {feat.text}
                         </span>
                       </div>
@@ -177,8 +187,8 @@ export function Pricing() {
               <div className="relative mt-auto z-10 pt-4">
                 <Link
                   href="/signup"
-                  className={`block w-full text-center py-3.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-300 ${plan.name === "Pro"
-                      ? "bg-white text-zinc-950 hover:bg-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.12)] font-bold"
+                  className={`block w-full text-center py-3.5 rounded-xl text-sm font-semibold tracking-tight transition-all duration-300 ${plan.name === "Pro"
+                      ? "bg-white text-zinc-950 hover:bg-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.12)]"
                       : "bg-[#18181b] border border-zinc-800 text-zinc-300 hover:bg-zinc-800"
                     }`}
                 >

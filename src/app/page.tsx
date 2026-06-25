@@ -30,7 +30,7 @@ export default async function HomePage() {
         <Hero />
         <Problem />
         <AutopilotCallout />
-        <Flip />
+        {/* <Flip /> */}
       </div>
 
       {/* Other sections outside the layout borders */}
@@ -38,7 +38,7 @@ export default async function HomePage() {
       <Benefits />
       <VsCompetitors />
       <WhatToExpect />
-      <LiveFeed />
+      {/* <LiveFeed /> */}
       <Pricing />
       <TrustSignals />
       <Results />
