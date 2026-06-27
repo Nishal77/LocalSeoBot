@@ -11,5 +11,5 @@ export default async function AuthRedirectPage() {
     select: { id: true },
   });
 
-  redirect(business ? "/dashboard" : "/onboarding");
+  redirect(business ? "/dashboard" : "/");
 }

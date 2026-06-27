@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import { ArrowRight } from "lucide-react";
 import type { FullAnalysis } from "@/lib/onboarding/types";
@@ -296,6 +296,7 @@ function PhaseScanning({ url, onDone, onCancel }: { url: string; onDone: (r: Ful
 type Phase = "input" | "scanning" | "report";
 
 function OnboardingWizard() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [phase, setPhase] = useState<Phase>("input");
@@ -307,13 +308,25 @@ function OnboardingWizard() {
   useEffect(() => {
     const bid = searchParams.get("businessId");
     const gbp = searchParams.get("gbp");
+    const urlParam = searchParams.get("url");
+    const pending = typeof window !== "undefined" ? sessionStorage.getItem("rankagent_pending") : null;
+
+    if (!bid && !gbp && !urlParam && !pending) {
+      router.replace("/");
+      return;
+    }
+
     if (bid) setBusinessId(bid);
     if (gbp === "connected" && bid) setPhase("report");
+    if (urlParam) {
+      setUrl(urlParam);
+      setPhase("scanning");
+    }
 
     try {
-      const pending = sessionStorage.getItem("rankagent_pending");
-      if (pending) {
-        const { savedUrl, savedResult, planId } = JSON.parse(pending) as {
+      const p = sessionStorage.getItem("rankagent_pending");
+      if (p) {
+        const { savedUrl, savedResult, planId } = JSON.parse(p) as {
           savedUrl: string; savedResult: FullAnalysis; planId: string;
         };
         sessionStorage.removeItem("rankagent_pending");
@@ -370,13 +383,12 @@ function OnboardingWizard() {
       }
       if (!bid) { setLoading(false); return; }
 
-      const res = await fetch("/api/onboarding/complete", {
+      await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessId: bid, plan: planId }),
       });
-      const data = await res.json() as { checkoutUrl?: string };
-      if (data.checkoutUrl) window.location.href = data.checkoutUrl;
+      window.location.href = "/dashboard";
     } catch { /* silent */ }
     finally { setLoading(false); }
   }

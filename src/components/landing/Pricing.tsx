@@ -186,7 +186,7 @@ export function Pricing() {
               {/* Action Button */}
               <div className="relative mt-auto z-10 pt-4">
                 <Link
-                  href="/signup"
+                  href="#hero-scanner"
                   className={`block w-full text-center py-3.5 rounded-xl text-sm font-semibold tracking-tight transition-all duration-300 ${plan.name === "Pro"
                       ? "bg-white text-zinc-950 hover:bg-zinc-100 shadow-[0_0_30px_rgba(255,255,255,0.12)]"
                       : "bg-[#18181b] border border-zinc-800 text-zinc-300 hover:bg-zinc-800"

@@ -48,7 +48,7 @@ export function FinalCTA() {
           </p>
 
           {/* Pill CTA button (white background) */}
-          <Link href="/signup">
+          <Link href="#hero-scanner">
             <button className="h-11 px-8 bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-medium rounded-xl transition-all duration-200 shadow-[0_0_30px_rgba(255,255,255,0.12)]">
               Start for free
             </button>

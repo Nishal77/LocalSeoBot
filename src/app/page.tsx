@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { Problem } from "@/components/landing/Problem";
@@ -17,7 +18,15 @@ import { Footer } from "@/components/landing/Footer";
 
 export default async function HomePage() {
   const session = await auth();
-  if (session?.user?.id) redirect("/dashboard");
+  if (session?.user?.id) {
+    const business = await prisma.business.findFirst({
+      where: { userId: session.user.id },
+      select: { onboardingComplete: true },
+    });
+    if (business?.onboardingComplete) {
+      redirect("/dashboard");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white overflow-x-hidden">

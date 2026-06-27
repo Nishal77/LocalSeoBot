@@ -32,20 +32,23 @@ export function Hero() {
           Connect your Google account once. Every week your AI agent writes posts, responds to reviews, and builds your presence on 200+ directories automatically. Just more customers finding you on Google.
         </p>
 
-        {/* CTA Button */}
-        <div className="mb-12">
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/signup">
-              <Button size="lg" className="h-12 px-6 bg-white hover:bg-white/80 text-black rounded-xl font-medium transition-all gap-2">
-                Get more customers on Google
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="lg" className="h-12 px-6 bg-white hover:bg-white/80 text-black rounded-xl font-medium transition-all gap-2">
-                See it in action
-              </Button>
-            </Link>
-          </div>
+        {/* URL Input Form */}
+        <div id="hero-scanner" className="mb-12 w-full max-w-lg mx-auto">
+          <form action="/onboarding" method="GET" className="flex items-center gap-2 bg-[#0d0d0f]/85 border border-zinc-800 p-2 rounded-2xl focus-within:border-zinc-700/80 transition-all shadow-xl shadow-black/40">
+            <input
+              type="url"
+              name="url"
+              required
+              placeholder="Enter your website URL (e.g. https://yourbusiness.com)"
+              className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none min-w-0"
+            />
+            <button
+              type="submit"
+              className="h-11 px-6 bg-white hover:bg-zinc-100 text-zinc-950 font-semibold text-xs rounded-xl tracking-tight transition-colors whitespace-nowrap cursor-pointer"
+            >
+              Analyze Site
+            </button>
+          </form>
         </div>
       </div>
 
