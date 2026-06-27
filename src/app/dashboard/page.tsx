@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     },
   });
 
-  if (!business) redirect("/");
+  if (!business) redirect("/onboarding");
 
   const citationsLive = business.citations.filter((c) => c.status === "live").length;
   const citationsTotal = business.citations.length;

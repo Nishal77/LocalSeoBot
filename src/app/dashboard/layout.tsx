@@ -26,7 +26,7 @@ export default async function DashboardLayout({
   });
 
   if (!business?.onboardingComplete) {
-    redirect("/");
+    redirect("/onboarding");
   }
 
   return (

@@ -243,29 +243,37 @@ function PhaseScanning({ url, onDone, onCancel }: { url: string; onDone: (r: Ful
 
   const loadingStates = lines.map((l, index) => {
     if (l.status === "waiting") {
-      if (index === 6) return { text: "Citations: checking 200 directories..." };
-      return { text: l.label };
+      if (index === 0) return { text: "Find your business" };
+      if (index === 1) return { text: "Locate business address" };
+      if (index === 2) return { text: "Check Google Maps rank" };
+      if (index === 3) return { text: "Analyze PageSpeed score" };
+      if (index === 4) return { text: "Scan customer reviews" };
+      if (index === 5) return { text: "Check schema markup code" };
+      if (index === 6) return { text: "Scan 200 citation directories" };
+      if (index === 7) return { text: "Identify outranking competitors" };
+      if (index === 8) return { text: "Build personalized strategy" };
     }
     if (l.status === "active") {
       if (index === 0) return { text: "Finding your business..." };
-      if (index === 1) return { text: "Locating business area..." };
+      if (index === 1) return { text: "Locating business address..." };
       if (index === 2) return { text: "Checking Google Maps rank..." };
-      if (index === 3) return { text: "Running PageSpeed test..." };
+      if (index === 3) return { text: "Analyzing PageSpeed score..." };
       if (index === 4) return { text: "Scanning customer reviews..." };
-      if (index === 5) return { text: "Checking schema markup..." };
-      if (index === 6) return { text: "Citations: checking 200 directories..." };
-      if (index === 7) return { text: "Detecting competitors..." };
-      if (index === 8) return { text: "AI building your personalized strategy..." };
+      if (index === 5) return { text: "Checking schema markup code..." };
+      if (index === 6) return { text: "Scanning 200 citation directories..." };
+      if (index === 7) return { text: "Identifying outranking competitors..." };
+      if (index === 8) return { text: "Building personalized strategy..." };
     }
-    if (index === 0) return { text: `Found your business: ${l.result || '"Unknown"'}` };
-    if (index === 1) return { text: `Located in: ${l.result || "Austin, TX"}` };
-    if (index === 2) return { text: `Current Google Maps rank: ${l.result || "#9"}` };
-    if (index === 3) return { text: `PageSpeed: ${l.result || "41/100"}` };
-    if (index === 4) return { text: `Reviews: ${l.result || "23 total · 4.2 avg"}` };
-    if (index === 5) return { text: `Schema markup: ${l.result || "missing ✗"}` };
-    if (index === 6) return { text: `Citations: ${l.result || "Found on 12 · Missing from 188"}` };
-    if (index === 7) return { text: `Competitors detected: ${l.result || "5 businesses outranking you"}` };
-    if (index === 8) return { text: "AI building your personalized strategy..." };
+    // l.status === "done"
+    if (index === 0) return { text: "Found your business" };
+    if (index === 1) return { text: "Located business address" };
+    if (index === 2) return { text: "Scanned Google Maps rank" };
+    if (index === 3) return { text: "Analyzed PageSpeed score" };
+    if (index === 4) return { text: "Retrieved customer reviews" };
+    if (index === 5) return { text: "Checked schema markup code" };
+    if (index === 6) return { text: "Scanned 200 citation directories" };
+    if (index === 7) return { text: "Identified outranking competitors" };
+    if (index === 8) return { text: "Personalized strategy built" };
     return { text: l.label };
   });
 
@@ -309,12 +317,6 @@ function OnboardingWizard() {
     const bid = searchParams.get("businessId");
     const gbp = searchParams.get("gbp");
     const urlParam = searchParams.get("url");
-    const pending = typeof window !== "undefined" ? sessionStorage.getItem("rankagent_pending") : null;
-
-    if (!bid && !gbp && !urlParam && !pending) {
-      router.replace("/");
-      return;
-    }
 
     if (bid) setBusinessId(bid);
     if (gbp === "connected" && bid) setPhase("report");
