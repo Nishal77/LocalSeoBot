@@ -9,7 +9,7 @@ import Link from "next/link";
 
 function LoginForm() {
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#09090b] grid grid-cols-1 lg:grid-cols-2 relative overflow-hidden">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#09090b] text-white grid grid-cols-1 lg:grid-cols-2 relative overflow-hidden">
       {/* Subtle background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.03),transparent_60%)] pointer-events-none" />
 

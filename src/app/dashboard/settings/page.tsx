@@ -14,10 +14,13 @@ export default async function SettingsPage() {
   if (!business) redirect("/onboarding");
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">Configure bot behavior and preferences</p>
+    <div className="space-y-8 max-w-3xl mx-auto pb-10">
+      {/* Header */}
+      <div className="border-b border-zinc-100 pb-6">
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">Settings</h1>
+        <p className="text-sm text-zinc-500 mt-1 font-medium">
+          Configure AI agent automation parameters and GBP post preferences.
+        </p>
       </div>
 
       <BotSettingsForm

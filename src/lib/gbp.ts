@@ -169,3 +169,58 @@ export async function replyToGBPReview(
   }
   return res.json();
 }
+
+export async function getGBPMedia(
+  businessId: string,
+  accountId: string,
+  locationId: string
+) {
+  const res = await gbpFetch(
+    businessId,
+    `https://mybusiness.googleapis.com/v4/${accountId}/${locationId}/media`
+  );
+  if (!res.ok) throw new Error(`GBP media fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function createGBPMedia(
+  businessId: string,
+  accountId: string,
+  locationId: string,
+  media: {
+    mediaFormat: string;
+    sourceUrl: string;
+    association?: { associationType: string };
+  }
+) {
+  const res = await gbpFetch(
+    businessId,
+    `https://mybusiness.googleapis.com/v4/${accountId}/${locationId}/media`,
+    {
+      method: "POST",
+      body: JSON.stringify(media),
+    }
+  );
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`GBP media creation failed: ${err}`);
+  }
+  return res.json();
+}
+
+export async function deleteGBPMedia(
+  businessId: string,
+  accountId: string,
+  locationId: string,
+  mediaId: string
+) {
+  const res = await gbpFetch(
+    businessId,
+    `https://mybusiness.googleapis.com/v4/${accountId}/${locationId}/media/${mediaId}`,
+    {
+      method: "DELETE",
+    }
+  );
+  if (!res.ok) throw new Error(`GBP media deletion failed: ${res.status}`);
+  return res.json();
+}

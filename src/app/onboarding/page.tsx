@@ -396,7 +396,7 @@ function OnboardingWizard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#121214] flex items-start justify-center pt-14 pb-16 px-4">
+    <div className="min-h-screen bg-[#121214] text-white flex items-start justify-center pt-14 pb-16 px-4">
       <div className="relative w-full flex flex-col items-center">
         {phase === "input" && (
           <PhaseInput onSubmit={(u) => { setUrl(u); setPhase("scanning"); }} />

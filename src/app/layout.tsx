@@ -14,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark bg-[#09090b]">
-      <body className="antialiased bg-[#09090b] text-white overscroll-none">
+    <html lang="en">
+      <body className="antialiased text-zinc-900 bg-white overscroll-none">
         <Providers>{children}</Providers>
         <CrispChat />
       </body>

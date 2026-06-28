@@ -13,17 +13,23 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const business = await prisma.business.findFirst({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      name: true,
-      status: true,
-      onboardingComplete: true,
-      trialEndsAt: true,
-      googleConnection: { select: { id: true } },
-    },
-  });
+  const [business, user] = await Promise.all([
+    prisma.business.findFirst({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        onboardingComplete: true,
+        trialEndsAt: true,
+        googleConnection: { select: { id: true } },
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true, email: true },
+    }),
+  ]);
 
   if (!business?.onboardingComplete) {
     redirect("/onboarding");
@@ -37,6 +43,8 @@ export default async function DashboardLayout({
         hasGBP={!!business.googleConnection}
         status={business.status}
         trialEndsAt={business.trialEndsAt?.toISOString() ?? null}
+        userRole={user?.role ?? "user"}
+        userEmail={user?.email ?? ""}
       />
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">

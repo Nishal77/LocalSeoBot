@@ -14,6 +14,7 @@ model User {
   passwordHash  String?    @map("password_hash") @db.VarChar(255)
   googleId      String?    @map("google_id") @db.VarChar(255)
   name          String?    @db.VarChar(255)
+  role          String     @default("user") @db.VarChar(50)
   createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   emailVerified DateTime?  @map("email_verified")
@@ -97,6 +98,7 @@ model Business {
   reviews            Review[]
   subscriptions      Subscription[]
   weeklyReports      WeeklyReport[]
+  reviewRequests     ReviewRequest[]
 
   @@map("businesses")
 }
@@ -331,4 +333,19 @@ model AuditLog {
   @@index([businessId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model ReviewRequest {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessId    String    @map("business_id") @db.Uuid
+  customerName  String    @map("customer_name") @db.VarChar(255)
+  customerPhone String    @map("customer_phone") @db.VarChar(50)
+  status        String    @default("pending") @db.VarChar(50) // pending, sent, clicked, responded, failed
+  sentAt        DateTime? @map("sent_at") @db.Timestamptz(6)
+  followupAt    DateTime? @map("followup_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("review_requests")
 }

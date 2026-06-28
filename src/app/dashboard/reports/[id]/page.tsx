@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { DownloadReportButton } from "@/components/dashboard/download-report-button";
 
 export const metadata = { title: "Weekly Report — RankAgent AI" };
 
@@ -21,63 +22,80 @@ export default async function ReportDetailPage({ params }: { params: { id: strin
   const weekOf = new Date(report.weekOf);
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/dashboard/reports">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">Weekly Report</h1>
-          <p className="text-muted-foreground text-sm">
-            Week of {weekOf.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-          </p>
+    <div className="max-w-4xl mx-auto pb-10 print-report-container">
+      <div className="flex items-center justify-between gap-4 mb-6 border-b border-zinc-100 pb-6 no-print">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/reports">
+            <Button variant="outline" size="sm" className="border-zinc-200/80 rounded-xl font-semibold text-zinc-700">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Weekly Report</h1>
+            <p className="text-zinc-500 text-sm font-medium mt-0.5">
+              Week of {weekOf.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            </p>
+          </div>
         </div>
+        <DownloadReportButton />
       </div>
 
-      {report.reportHtml ? (
-        <div
-          className="prose prose-sm max-w-none border rounded-lg p-6 bg-white"
-          dangerouslySetInnerHTML={{ __html: report.reportHtml }}
-        />
-      ) : (
-        <div className="border rounded-lg p-6 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Posts published", value: report.postsPublished },
-              { label: "Citations submitted", value: report.citationsSubmitted },
-              { label: "Reviews responded", value: report.reviewsResponded },
-              { label: "Keywords improved", value: report.keywordsImproved },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
-              </div>
-            ))}
+      {/* Printable Area */}
+      <div className="bg-white border border-zinc-200/60 rounded-2xl p-8 shadow-sm">
+        <div className="mb-8 border-b pb-6">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">LocalSEOBot Report</span>
+            <span className="text-sm font-semibold text-zinc-800">
+              {weekOf.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </span>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg border">
-              <div className="text-sm font-medium mb-1">Average rating this week</div>
-              <div className="text-xl font-bold">
-                {report.avgRatingThisWeek ? `${Number(report.avgRatingThisWeek).toFixed(1)} ⭐` : "No reviews"}
-              </div>
-            </div>
-            <div className="p-4 rounded-lg border">
-              <div className="text-sm font-medium mb-1">Citations live</div>
-              <div className="text-xl font-bold">{report.citationsLive}</div>
-            </div>
-          </div>
-
-          {report.sentAt && (
-            <p className="text-xs text-muted-foreground">
-              Sent {new Date(report.sentAt).toLocaleString()}
-            </p>
-          )}
+          <h2 className="text-2xl font-bold text-zinc-950">{report.business.name}</h2>
+          <p className="text-xs text-zinc-450 font-semibold mt-1">SEO Autopilot Performance Log</p>
         </div>
-      )}
+
+        {report.reportHtml ? (
+          <div
+            className="prose prose-zinc max-w-none text-zinc-800 text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: report.reportHtml }}
+          />
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Posts published", value: report.postsPublished },
+                { label: "Citations submitted", value: report.citationsSubmitted },
+                { label: "Reviews responded", value: report.reviewsResponded },
+                { label: "Keywords improved", value: report.keywordsImproved },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center p-4 bg-zinc-50 rounded-2xl border border-zinc-150/60">
+                  <div className="text-3xl font-semibold text-zinc-900 tracking-tight">{stat.value}</div>
+                  <div className="text-xs text-zinc-500 font-semibold mt-1">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-2xl border border-zinc-200/60 bg-white">
+                <div className="text-xs font-semibold text-zinc-500 tracking-tight mb-1.5">Average rating this week</div>
+                <div className="text-xl font-bold text-zinc-900">
+                  {report.avgRatingThisWeek ? `${Number(report.avgRatingThisWeek).toFixed(1)} ⭐` : "No reviews"}
+                </div>
+              </div>
+              <div className="p-5 rounded-2xl border border-zinc-200/60 bg-white">
+                <div className="text-xs font-semibold text-zinc-500 tracking-tight mb-1.5">Citations live</div>
+                <div className="text-xl font-bold text-zinc-900">{report.citationsLive}</div>
+              </div>
+            </div>
+
+            {report.sentAt && (
+              <p className="text-xs text-zinc-400 font-semibold mt-4">
+                Sent via email on {new Date(report.sentAt).toLocaleString()}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

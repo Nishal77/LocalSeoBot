@@ -42,6 +42,7 @@ function buildQueues() {
     reportGenerate: makeQueue("report.generate"),
     reportSend: makeQueue("report.send"),
     onboardingAudit: makeQueue("onboarding.audit"),
+    reviewRequestSend: makeQueue("review.request.send"),
   } as const;
 }
 
